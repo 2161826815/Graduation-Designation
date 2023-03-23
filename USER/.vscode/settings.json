@@ -1,0 +1,22 @@
+{
+    "files.associations": {
+        "led.h": "c",
+        "stm32f10x.h": "c",
+        "delay.h": "c",
+        "core_cm3.h": "c",
+        "usart.h": "c",
+        "beep.h": "c",
+        "ds18b20.h": "c",
+        "max30100.h": "c",
+        "an_i2c.h": "c",
+        "oled_iic.h": "c",
+        "gui.h": "c",
+        "key.h": "c",
+        "i2c.h": "c",
+        "mpu6050.h": "c",
+        "esp8266.h": "c",
+        "esp_usart.h": "c",
+        "sys.h": "c",
+        "max30102.h": "c"
+    }
+}
