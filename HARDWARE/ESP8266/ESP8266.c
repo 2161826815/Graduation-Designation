@@ -6,7 +6,7 @@ uint8_t RCV_CNT=0;
 
 char AT_CIPSNTPCFG[]="AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n";    //设置地区时间连接阿里云
 
-char AT_WIFI_INFO[]="AT+CWJAP=\"(G)-IDLE\",\"2161826815www\"\r\n";   //连接WIFI
+char AT_WIFI_INFO[]="AT+CWJAP=\"(G)-IDLE\",\"0000000135\"\r\n";   //连接WIFI
 
 //设置MQTT用户
 char AT_MQTTUSRCFG[]="AT+MQTTUSERCFG=0,1,\"NULL\",\"ESP8266&i5z42JpfDlV\",\"F153B43A65CC96889F0CEBF96984EE1993682453\",0,0,\"\"\r\n";

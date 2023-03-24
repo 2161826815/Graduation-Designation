@@ -2,7 +2,7 @@
 ..\obj\esp8266.o: ..\HARDWARE\ESP8266\ESP8266.h
 ..\obj\esp8266.o: ..\USER\stm32f10x.h
 ..\obj\esp8266.o: ..\CORE\core_cm3.h
-..\obj\esp8266.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\esp8266.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
 ..\obj\esp8266.o: ..\USER\system_stm32f10x.h
 ..\obj\esp8266.o: ..\USER\stm32f10x_conf.h
 ..\obj\esp8266.o: ..\STM32F10x_FWLib\inc\stm32f10x_adc.h
@@ -30,7 +30,7 @@
 ..\obj\esp8266.o: ..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h
 ..\obj\esp8266.o: ..\STM32F10x_FWLib\inc\misc.h
 ..\obj\esp8266.o: ..\HARDWARE\ESP8266\ESP_USART.h
-..\obj\esp8266.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-..\obj\esp8266.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-..\obj\esp8266.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+..\obj\esp8266.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdio.h
+..\obj\esp8266.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
+..\obj\esp8266.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdarg.h
 ..\obj\esp8266.o: ..\SYSTEM\delay.h

@@ -3,7 +3,7 @@
 ..\obj\oled_iic.o: ..\SYSTEM\sys.h
 ..\obj\oled_iic.o: ..\USER\stm32f10x.h
 ..\obj\oled_iic.o: ..\CORE\core_cm3.h
-..\obj\oled_iic.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\oled_iic.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
 ..\obj\oled_iic.o: ..\USER\system_stm32f10x.h
 ..\obj\oled_iic.o: ..\USER\stm32f10x_conf.h
 ..\obj\oled_iic.o: ..\STM32F10x_FWLib\inc\stm32f10x_adc.h

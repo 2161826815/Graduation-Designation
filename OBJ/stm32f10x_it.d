@@ -2,7 +2,7 @@
 ..\obj\stm32f10x_it.o: stm32f10x_it.h
 ..\obj\stm32f10x_it.o: stm32f10x.h
 ..\obj\stm32f10x_it.o: ..\CORE\core_cm3.h
-..\obj\stm32f10x_it.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\stm32f10x_it.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
 ..\obj\stm32f10x_it.o: system_stm32f10x.h
 ..\obj\stm32f10x_it.o: stm32f10x_conf.h
 ..\obj\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_adc.h
@@ -30,10 +30,10 @@
 ..\obj\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h
 ..\obj\stm32f10x_it.o: ..\STM32F10x_FWLib\inc\misc.h
 ..\obj\stm32f10x_it.o: ..\SYSTEM\USART.h
-..\obj\stm32f10x_it.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+..\obj\stm32f10x_it.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdio.h
 ..\obj\stm32f10x_it.o: ..\HARDWARE\ESP8266\ESP_USART.h
-..\obj\stm32f10x_it.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-..\obj\stm32f10x_it.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+..\obj\stm32f10x_it.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
+..\obj\stm32f10x_it.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdarg.h
 ..\obj\stm32f10x_it.o: ..\HARDWARE\LED\LED.h
 ..\obj\stm32f10x_it.o: ..\HARDWARE\BEEP\beep.h
 ..\obj\stm32f10x_it.o: ..\HARDWARE\ESP8266\ESP8266.h

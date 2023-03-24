@@ -2,7 +2,7 @@
 ..\obj\ds18b20.o: ..\HARDWARE\DS18B20\DS18B20.h
 ..\obj\ds18b20.o: ..\USER\stm32f10x.h
 ..\obj\ds18b20.o: ..\CORE\core_cm3.h
-..\obj\ds18b20.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\ds18b20.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
 ..\obj\ds18b20.o: ..\USER\system_stm32f10x.h
 ..\obj\ds18b20.o: ..\USER\stm32f10x_conf.h
 ..\obj\ds18b20.o: ..\STM32F10x_FWLib\inc\stm32f10x_adc.h
