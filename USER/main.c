@@ -15,7 +15,7 @@ uint8_t ESP_Data[255];
 uint8_t OLED_State=0;                                           //中断状态码开关OLED
 int main(void)
 {
-//  uint8_t ret;                                                    //ESP8266初始化返回值
+  uint8_t ret;                                                    //ESP8266初始化返回值
 //  uint16_t temperature;                                           //温度值
 //  uint32_t RED, IR;                                               //红光和红外光
 //  int32_t SPO2_Value,HR_Value;                                    //血氧值和心率值
@@ -33,10 +33,17 @@ int main(void)
 //	OLED_Init();
 //	OLED_Clear(0);                                                  //清屏
 //	MPU6050_Init();                                                 //MPU6050 角速度，加速度传感器初始化
-//  ret = ESP8266_Init();                                           //ESP8266 WIFI模块初始化
+  ret = ESP8266_Init();                                           //ESP8266 WIFI模块初始化
 
-//  if(ret != 0)
-//    printf("Error State:%d\r\n",ret);
+  if(ret != 0){
+    printf("Error State:%d\r\n",ret);
+  }else{
+    printf("ESP8266 Init Success\r\n");
+    ESP8266_Pub_Data(180,Type_HR);
+    delay_ms(100);
+		ESP8266_Pub_Data(80,Type_SPO2);
+  }
+    
   while (1)
   {
 		LED_ON(1);

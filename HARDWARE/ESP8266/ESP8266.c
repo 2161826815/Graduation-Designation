@@ -1,12 +1,12 @@
 #include "ESP8266.h"
 
-extern uint8_t DMA_RCV_Buffer[256];
+extern uint8_t DMA_RCV_Buffer[1024];
 char Pub_Data[256];
 uint8_t RCV_CNT=0;
 
 char AT_CIPSNTPCFG[]="AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n";    //设置地区时间连接阿里云
 
-char AT_WIFI_INFO[]="AT+CWJAP=\"(G)-IDLE\",\"0000000135\"\r\n";   //连接WIFI
+char AT_WIFI_INFO[]="AT+CWJAP=\"ESP8266\",\"88888888\"\r\n";   //连接WIFI
 
 //设置MQTT用户
 char AT_MQTTUSRCFG[]="AT+MQTTUSERCFG=0,1,\"NULL\",\"ESP8266&i5z42JpfDlV\",\"F153B43A65CC96889F0CEBF96984EE1993682453\",0,0,\"\"\r\n";
@@ -24,7 +24,7 @@ char AF_MQTTPUB_HR_SPO2[]="AT+MQTTPUB=0,\"/i5z42JpfDlV/ESP8266/user/HR_SPO2\",\"
 //清空接收数组
 void ESP8266_RCV_Clear(void)
 {
-    memset(DMA_RCV_Buffer,0,256);
+    memset(DMA_RCV_Buffer,0,1024);
     RCV_CNT = 0;
 }
 
@@ -41,14 +41,14 @@ uint8_t ESP8266_Wait(void)
 uint8_t ESP8266_Send_Cmd(char* cmd,char* ret)
 {
     uint8_t timeout = 200;
-    USART_Send_str(ESP8266_USARTX,(uint8_t*)cmd);
     while(timeout--){
-        if(ESP8266_Wait() == 1){
-            if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
-                ESP8266_RCV_Clear();
-                return 0;
-            }  
-        }
+        USART_Send_str(ESP8266_USARTX,(uint8_t*)cmd);
+        //printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
+        if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
+            ESP8266_RCV_Clear();
+            printf("Recieve OK\r\n");
+            return 0;
+        }  
         delay_ms(10);
     }
     return 1;
@@ -58,7 +58,7 @@ uint8_t ESP8266_Send_Cmd(char* cmd,char* ret)
 uint8_t ESP8266_Init()
 {
     uint8_t ret;
-    uint8_t timeout = 5;
+    uint8_t timeout = 10;
     ESP8266_GPIO_Config();
 
     ret = ESP8266_Send_Cmd("AT\r\n","OK");      //测试是否正常工作
@@ -68,11 +68,11 @@ uint8_t ESP8266_Init()
     ret = ESP8266_Send_Cmd("AT+RST\r\n","OK");  //复位
     if(ret != 0)
        return 2;
-
+/*
     ret = ESP8266_Send_Cmd("ATE0\r\n","OK");    //关闭回显
     if(ret != 0)
        return 3;
-
+*/
     ret = ESP8266_Send_Cmd("AT+CWMODE=3\r\n","OK");  //Station+AP模式
     if(ret != 0)
        return 4;
@@ -82,7 +82,7 @@ uint8_t ESP8266_Init()
        return 5;
 
     while(timeout--){
-        ret = ESP8266_Send_Cmd(AT_WIFI_INFO,"OK");  //连接WIFI 等待5秒
+        ret = ESP8266_Send_Cmd(AT_WIFI_INFO,"OK");  //连接WIFI
         if(ret == 0)
             break;
         delay_ms(1000);
@@ -98,7 +98,13 @@ uint8_t ESP8266_Init()
     if(ret != 0)
        return 8;
 
-    ret = ESP8266_Send_Cmd(AT_MQTTCONN,"OK");  //连接阿里云
+    timeout = 200;
+    while(timeout--){
+        ret = ESP8266_Send_Cmd(AT_MQTTCONN,"OK");  //连接阿里云
+        if(ret == 0)
+            break;
+        delay_ms(1000);
+    }
     if(ret != 0)
        return 9;
 
@@ -108,45 +114,58 @@ uint8_t ESP8266_Init()
 void ESP8266_Pub_Data(uint8_t data,int type)
 {
     if(type == Type_Temperature){
-        sprintf(Pub_Data,"AT+MQTTPUB=0,                                     \
-        \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",             \
-        \"{\"method\":\"thing.service.property.set\",                       \
-        \"id\":\"1\",                                                       \
-        \"params\":{                                                        \
-            \"Temperature\":%f                                                     \
-        },                                                                  \
-        \"version\":\"1.0\"}\",1,0",data);
+        sprintf(Pub_Data,"AT+MQTTPUB=0,\
+\"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
+\"{\"method\":\"thing.service.property.set\",\
+\"id\":\"1\",\
+\"params\":{\
+\"Temperature\":%f\
+},\
+\"version\":\"1.0\"}\",1,0\r\n",data);
 
-        ESP8266_Send_Cmd(Pub_Data,"OK");
+        //printf("%s",Pub_Data);
+        if(ESP8266_Send_Cmd(Pub_Data,"OK") == 0){
+            printf("Pub data Success\r\n");
+        }else{
+            printf("Pub Data Fail\r\n");
+        }
           
-    }
-    if(type == Type_HR){
-        sprintf(Pub_Data,"AT+MQTTPUB=0,                                     \
-        \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",             \
-        \"{\"method\":\"thing.service.property.set\",                       \
-        \"id\":\"1\",                                                       \
-        \"params\":{                                                        \
-            \"HeartRate\":%d                                                     \
-        },                                                                  \
-        \"version\":\"1.0\"}\",1,0",data);
+    }else if(type == Type_HR){
+        sprintf(Pub_Data,"AT+MQTTPUB=0,\
+\"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
+\"{\"method\":\"thing.service.property.set\",\
+\"id\":\"1\",\
+\"params\":{\
+\"HeartRate\":%d\
+},\
+\"version\":\"1.0\"}\",1,0\r\n",data);
 
-        ESP8266_Send_Cmd(Pub_Data,"OK");
+        //printf("%s",Pub_Data);
+        if(ESP8266_Send_Cmd(Pub_Data,"OK") == 0){
+            printf("Pub data Success\r\n");
+        }else{
+            printf("Pub Data Fail\r\n");
+        }
+       
+    }else if(type == Type_SPO2){
+        sprintf(Pub_Data,"AT+MQTTPUB=0,\
+\"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
+\"{\"method\":\"thing.service.property.set\",\
+\"id\":\"2\",\
+\"params\":{\
+\"SPO2\":%d\
+},\
+\"version\":\"1.0\"}\",1,0\r\n",data);
+
+        //printf("%s",Pub_Data);
+        if(ESP8266_Send_Cmd(Pub_Data,"OK") == 0){
+            printf("Pub data Success\r\n");
+        }else{
+            printf("Pub Data Fail\r\n");
+        }
        
     }
-    if(type == Type_SPO2){
-        sprintf(Pub_Data,"AT+MQTTPUB=0,                                     \
-        \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",             \
-        \"{\"method\":\"thing.service.property.set\",                       \
-        \"id\":\"1\",                                                       \
-        \"params\":{                                                        \
-            \"SPO2\":%d                                                     \
-        },                                                                  \
-        \"version\":\"1.0\"}\",1,0",data);
-
-        ESP8266_Send_Cmd(Pub_Data,"OK");
-       
-    }
-    memset(Pub_Data,0,256);
+    memset(Pub_Data,0,1024);
 }
 
 /*
