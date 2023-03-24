@@ -1,7 +1,7 @@
 ..\obj\main.o: main.c
 ..\obj\main.o: stm32f10x.h
 ..\obj\main.o: ..\CORE\core_cm3.h
-..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\main.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
 ..\obj\main.o: system_stm32f10x.h
 ..\obj\main.o: stm32f10x_conf.h
 ..\obj\main.o: ..\STM32F10x_FWLib\inc\stm32f10x_adc.h
@@ -41,8 +41,8 @@
 ..\obj\main.o: ..\HARDWARE\KEY\key.h
 ..\obj\main.o: ..\HARDWARE\ESP8266\ESP8266.h
 ..\obj\main.o: ..\HARDWARE\ESP8266\ESP_USART.h
-..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+..\obj\main.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdio.h
+..\obj\main.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
+..\obj\main.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdarg.h
 ..\obj\main.o: ..\SYSTEM\USART.h
 ..\obj\main.o: ..\HARDWARE\MPU6050\MPU6050.h

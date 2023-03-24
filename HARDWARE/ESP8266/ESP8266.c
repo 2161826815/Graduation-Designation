@@ -6,7 +6,7 @@ uint8_t RCV_CNT=0;
 
 char AT_CIPSNTPCFG[]="AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n";    //设置地区时间连接阿里云
 
-char AT_WIFI_INFO[]="AT+CWJAP=\"(G)-IDLE\",\"2161826815www\"\r\n";   //连接WAIFI
+char AT_WIFI_INFO[]="AT+CWJAP=\"(G)-IDLE\",\"0000000135\"\r\n";   //连接WIFI
 
 //设置MQTT用户
 char AT_MQTTUSRCFG[]="AT+MQTTUSERCFG=0,1,\"NULL\",\"ESP8266&i5z42JpfDlV\",\"F153B43A65CC96889F0CEBF96984EE1993682453\",0,0,\"\"\r\n";
@@ -108,27 +108,56 @@ uint8_t ESP8266_Init()
 void ESP8266_Pub_Data(uint8_t data,int type)
 {
     if(type == Type_Temperature){
-        sprintf(Pub_Data,"AT+MQTTPUB=0,\"/i5z42JpfDlV/ESP8266/user/temperature\",\"%d\",1,0\r\n",data);
+        sprintf(Pub_Data,"AT+MQTTPUB=0,                                     \
+        \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",             \
+        \"{\"method\":\"thing.service.property.set\",                       \
+        \"id\":\"1\",                                                       \
+        \"params\":{                                                        \
+            \"Temperature\":%f                                                     \
+        },                                                                  \
+        \"version\":\"1.0\"}\",1,0",data);
+
         ESP8266_Send_Cmd(Pub_Data,"OK");
-        
+          
     }
     if(type == Type_HR){
-        sprintf(Pub_Data,"AT+MQTTPUB=0,\"/i5z42JpfDlV/ESP8266/user/HR\",\"%d\",1,0\r\n",data);
+        sprintf(Pub_Data,"AT+MQTTPUB=0,                                     \
+        \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",             \
+        \"{\"method\":\"thing.service.property.set\",                       \
+        \"id\":\"1\",                                                       \
+        \"params\":{                                                        \
+            \"HeartRate\":%d                                                     \
+        },                                                                  \
+        \"version\":\"1.0\"}\",1,0",data);
+
         ESP8266_Send_Cmd(Pub_Data,"OK");
-        
+       
     }
     if(type == Type_SPO2){
-        sprintf(Pub_Data,"AT+MQTTPUB=0,\"/i5z42JpfDlV/ESP8266/user/SPO2\",\"%d\",1,0\r\n",data);
+        sprintf(Pub_Data,"AT+MQTTPUB=0,                                     \
+        \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",             \
+        \"{\"method\":\"thing.service.property.set\",                       \
+        \"id\":\"1\",                                                       \
+        \"params\":{                                                        \
+            \"SPO2\":%d                                                     \
+        },                                                                  \
+        \"version\":\"1.0\"}\",1,0",data);
+
         ESP8266_Send_Cmd(Pub_Data,"OK");
-        
+       
     }
     memset(Pub_Data,0,256);
 }
 
 /*
-    这里要改
+AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{\"SPO2\":55}\,\"version\":\"1.0\"}",1,0
 */
 
 /*
-测试
+AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{"HeartRate\":66}\,\"version\":\"1.0\"}",1,0
 */
+
+/*
+AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{"Temperature\":77.7}\,\"version\":\"1.0\"}",1,0
+*/
+

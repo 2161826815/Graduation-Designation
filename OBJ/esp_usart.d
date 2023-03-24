@@ -2,7 +2,7 @@
 ..\obj\esp_usart.o: ..\HARDWARE\ESP8266\ESP_USART.h
 ..\obj\esp_usart.o: ..\USER\stm32f10x.h
 ..\obj\esp_usart.o: ..\CORE\core_cm3.h
-..\obj\esp_usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\esp_usart.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
 ..\obj\esp_usart.o: ..\USER\system_stm32f10x.h
 ..\obj\esp_usart.o: ..\USER\stm32f10x_conf.h
 ..\obj\esp_usart.o: ..\STM32F10x_FWLib\inc\stm32f10x_adc.h
@@ -29,6 +29,6 @@
 ..\obj\esp_usart.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 ..\obj\esp_usart.o: ..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h
 ..\obj\esp_usart.o: ..\STM32F10x_FWLib\inc\misc.h
-..\obj\esp_usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-..\obj\esp_usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-..\obj\esp_usart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+..\obj\esp_usart.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdio.h
+..\obj\esp_usart.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
+..\obj\esp_usart.o: D:\Keil_v5\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdarg.h
