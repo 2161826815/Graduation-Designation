@@ -1,6 +1,7 @@
 #include "ESP_USART.h"
 
-uint8_t DMA_RCV_Buffer[256];
+uint8_t DMA_RCV_Buffer[1024];
+uint8_t DMA_RCV_SIZE = 1024;
 
 void ESP8266_GPIO_Config(void)
 {
@@ -24,7 +25,8 @@ void ESP8266_GPIO_Config(void)
     USART_Struct.USART_StopBits = USART_StopBits_1;
     USART_Struct.USART_WordLength = USART_WordLength_8b;
     USART_Init(ESP8266_USARTX,&USART_Struct);
-    USART_ITConfig(ESP8266_USARTX,USART_IT_IDLE,ENABLE); //空闲中断
+    //USART_ITConfig(ESP8266_USARTX,USART_IT_IDLE,ENABLE); //空闲中断
+    USART_ITConfig(ESP8266_USARTX,USART_IT_RXNE,ENABLE); //接收中断
     USART_DMACmd(ESP8266_USARTX,USART_DMAReq_Rx,ENABLE); //使能串口DMA接受
     USART_Cmd(ESP8266_USARTX,ENABLE);
 
