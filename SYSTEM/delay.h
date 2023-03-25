@@ -2,12 +2,13 @@
 
 #define __DELAY_H
 
+//#define EX_Crystal
+
 #include "stm32f10x.h"
 #include "core_cm3.h"
 
 void delay_us(uint32_t us);
 void delay_ms(uint32_t ms);
-
 
 #endif
 

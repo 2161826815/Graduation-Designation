@@ -1,30 +1,31 @@
 #include "ESP8266.h"
 
-extern uint8_t DMA_RCV_Buffer[1024];
-char Pub_Data[256];
-uint8_t RCV_CNT=0;
+extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
+char Pub_Data[PUB_SIZE];
+uint16_t RCV_CNT=0;
+uint8_t ESP_STATE;
 
-char AT_CIPSNTPCFG[]="AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n";    //设置地区时间连接阿里云
+uint8_t AT_CIPSNTPCFG[]="AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n";    //设置地区时间连接阿里云
 
-char AT_WIFI_INFO[]="AT+CWJAP=\"ESP8266\",\"88888888\"\r\n";   //连接WIFI
+uint8_t AT_WIFI_INFO[]="AT+CWJAP=\"gidle\",\"2161826815\"\r\n";   //连接WIFI
 
 //设置MQTT用户
-char AT_MQTTUSRCFG[]="AT+MQTTUSERCFG=0,1,\"NULL\",\"ESP8266&i5z42JpfDlV\",\"F153B43A65CC96889F0CEBF96984EE1993682453\",0,0,\"\"\r\n";
+uint8_t AT_MQTTUSRCFG[]="AT+MQTTUSERCFG=0,1,\"NULL\",\"ESP8266&i5z42JpfDlV\",\"F153B43A65CC96889F0CEBF96984EE1993682453\",0,0,\"\"\r\n";
 
 //设置MQTT客户端
-char AT_MQTTCLIENTID[]="AT+MQTTCLIENTID=0,\"2161826815|securemode=2\\,signmethod=hmacsha1\\,timestamp=1676045469270|\"\r\n";
+uint8_t AT_MQTTCLIENTID[]="AT+MQTTCLIENTID=0,\"2161826815|securemode=2\\,signmethod=hmacsha1\\,timestamp=1676045469270|\"\r\n";
 
 //以MQTT协议连接阿里云
-char AT_MQTTCONN[]="AT+MQTTCONN=0,\"i5z42JpfDlV.iot-as-mqtt.cn-shanghai.aliyuncs.com\",1883,1\r\n";
+uint8_t AT_MQTTCONN[]="AT+MQTTCONN=0,\"i5z42JpfDlV.iot-as-mqtt.cn-shanghai.aliyuncs.com\",1883,1\r\n";
 
-char AF_MQTTPUB_TEMP[]="AT+MQTTPUB=0,\"/i5z42JpfDlV/ESP8266/user/temperature\",\"xxx\",1,0\r\n";  //发送温度值到云端，xxx需要格式化
-char AF_MQTTPUB_HR_SPO2[]="AT+MQTTPUB=0,\"/i5z42JpfDlV/ESP8266/user/HR_SPO2\",\"xxx\",1,0\r\n";  //发送心率血氧值到云端，xxx需要格式化
+uint8_t AF_MQTTPUB_TEMP[]="AT+MQTTPUB=0,\"/i5z42JpfDlV/ESP8266/user/temperature\",\"xxx\",1,0\r\n";  //发送温度值到云端，xxx需要格式化
+uint8_t AF_MQTTPUB_HR_SPO2[]="AT+MQTTPUB=0,\"/i5z42JpfDlV/ESP8266/user/HR_SPO2\",\"xxx\",1,0\r\n";  //发送心率血氧值到云端，xxx需要格式化
 
 
 //清空接收数组
 void ESP8266_RCV_Clear(void)
 {
-    memset(DMA_RCV_Buffer,0,1024);
+    memset(DMA_RCV_Buffer,0,DMA_SIZE);
     RCV_CNT = 0;
 }
 
@@ -37,19 +38,28 @@ uint8_t ESP8266_Wait(void)
         return 0;
 }
 
-//发送AT指令，成功返回0，失败返回1
-uint8_t ESP8266_Send_Cmd(char* cmd,char* ret)
+
+static void delay()
 {
-    uint8_t timeout = 200;
+    uint32_t i = 0xfffff;
+    while(i--);
+}
+
+//发送AT指令，成功返回0，失败返回1
+uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
+{
+    uint16_t timeout = 500;
     while(timeout--){
-        USART_Send_str(ESP8266_USARTX,(uint8_t*)cmd);
+        USART_Send_str(ESP8266_USARTX,cmd);
         //printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
         if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
             ESP8266_RCV_Clear();
             printf("Recieve OK\r\n");
             return 0;
-        }  
-        delay_ms(10);
+        }
+        delay();
+          
+        //delay_ms(1000);
     }
     return 1;
 }
@@ -58,21 +68,25 @@ uint8_t ESP8266_Send_Cmd(char* cmd,char* ret)
 uint8_t ESP8266_Init()
 {
     uint8_t ret;
-    uint8_t timeout = 10;
+    //uint8_t timeout = 10;
     ESP8266_GPIO_Config();
-
+/*
     ret = ESP8266_Send_Cmd("AT\r\n","OK");      //测试是否正常工作
     if(ret != 0)
        return 1;
+*/
 
+/*
     ret = ESP8266_Send_Cmd("AT+RST\r\n","OK");  //复位
     if(ret != 0)
        return 2;
+*/
 /*
     ret = ESP8266_Send_Cmd("ATE0\r\n","OK");    //关闭回显
     if(ret != 0)
        return 3;
 */
+/*
     ret = ESP8266_Send_Cmd("AT+CWMODE=3\r\n","OK");  //Station+AP模式
     if(ret != 0)
        return 4;
@@ -81,12 +95,7 @@ uint8_t ESP8266_Init()
     if(ret != 0)
        return 5;
 
-    while(timeout--){
-        ret = ESP8266_Send_Cmd(AT_WIFI_INFO,"OK");  //连接WIFI
-        if(ret == 0)
-            break;
-        delay_ms(1000);
-    }
+    ret = ESP8266_Send_Cmd(AT_WIFI_INFO,"OK");  //连接WIFI
     if(ret != 0)
        return 6;
 
@@ -98,22 +107,18 @@ uint8_t ESP8266_Init()
     if(ret != 0)
        return 8;
 
-    timeout = 200;
-    while(timeout--){
-        ret = ESP8266_Send_Cmd(AT_MQTTCONN,"OK");  //连接阿里云
-        if(ret == 0)
-            break;
-        delay_ms(1000);
-    }
+    ret = ESP8266_Send_Cmd(AT_MQTTCONN,"OK");  //连接阿里云
     if(ret != 0)
        return 9;
-
+*/
+    
     return 0;
 }
 
 void ESP8266_Pub_Data(uint8_t data,int type)
 {
-    if(type == Type_Temperature){
+    switch(type){
+    case Type_Temperature:
         sprintf(Pub_Data,"AT+MQTTPUB=0,\
 \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
 \"{\"method\":\"thing.service.property.set\",\
@@ -124,30 +129,31 @@ void ESP8266_Pub_Data(uint8_t data,int type)
 \"version\":\"1.0\"}\",1,0\r\n",data);
 
         //printf("%s",Pub_Data);
-        if(ESP8266_Send_Cmd(Pub_Data,"OK") == 0){
+        if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
             printf("Pub data Success\r\n");
         }else{
             printf("Pub Data Fail\r\n");
         }
-          
-    }else if(type == Type_HR){
+        break;
+    case Type_HR:
         sprintf(Pub_Data,"AT+MQTTPUB=0,\
 \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
 \"{\"method\":\"thing.service.property.set\",\
-\"id\":\"1\",\
+\"id\":\"456\",\
 \"params\":{\
 \"HeartRate\":%d\
 },\
 \"version\":\"1.0\"}\",1,0\r\n",data);
 
-        //printf("%s",Pub_Data);
-        if(ESP8266_Send_Cmd(Pub_Data,"OK") == 0){
+        printf("%s",Pub_Data);
+        if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
             printf("Pub data Success\r\n");
         }else{
             printf("Pub Data Fail\r\n");
         }
+        break;
        
-    }else if(type == Type_SPO2){
+    case Type_SPO2:
         sprintf(Pub_Data,"AT+MQTTPUB=0,\
 \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
 \"{\"method\":\"thing.service.property.set\",\
@@ -158,14 +164,17 @@ void ESP8266_Pub_Data(uint8_t data,int type)
 \"version\":\"1.0\"}\",1,0\r\n",data);
 
         //printf("%s",Pub_Data);
-        if(ESP8266_Send_Cmd(Pub_Data,"OK") == 0){
+        if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
             printf("Pub data Success\r\n");
         }else{
             printf("Pub Data Fail\r\n");
-        }
-       
+        }  
+        break;
+
+    default:
+        break;
     }
-    memset(Pub_Data,0,1024);
+    memset(Pub_Data,0,sizeof(uint8_t)*PUB_SIZE);
 }
 
 /*

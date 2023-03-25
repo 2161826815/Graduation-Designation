@@ -34,7 +34,7 @@ void Debug_USART_init(void)
     nvic_struct.NVIC_IRQChannel = Debug_Usart_IRQ_Channel;
     nvic_struct.NVIC_IRQChannelCmd = ENABLE;
     nvic_struct.NVIC_IRQChannelPreemptionPriority = 1;
-    nvic_struct.NVIC_IRQChannelSubPriority = 1;
+    nvic_struct.NVIC_IRQChannelSubPriority = 3;
     NVIC_Init(&nvic_struct);
 
     USART_ITConfig(Debug_Usart,USART_IT_RXNE,ENABLE); //使能串口接收中断

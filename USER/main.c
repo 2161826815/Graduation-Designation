@@ -16,16 +16,22 @@ uint8_t OLED_State=0;                                           //中断状态�
 int main(void)
 {
   uint8_t ret;                                                    //ESP8266初始化返回值
-//  uint16_t temperature;                                           //温度值
+  char str;
+  float temperature;                                           //温度值
 //  uint32_t RED, IR;                                               //红光和红外光
 //  int32_t SPO2_Value,HR_Value;                                    //血氧值和心率值
 //  short accel_x,accel_y,accel_z;                                 //x,y,z轴的加速度
 //  short gyro_x,gyro_y,gyro_z;                                     //x,y,z轴的角速度
   Debug_USART_init();                                             //调试串口初始化
 	LED_Init();                                                     //LED初始化
-//  Key_Init();                                                     //独立按键初始化
+  Key_Init();                                                     //独立按键初始化
 //  BEEP_Init();                                                    //蜂鸣器Init
-//  DS18B20_Init();                                                 //DS18B20 温度传感器初始化
+  ret = DS18B20_Init();                                                 //DS18B20 温度传感器初始化
+  if(ret == 0){
+    printf("DS18B20 Init Succes\r\n");
+  }else{
+    printf("DS18B20 Init Fail\r\n");
+  }
 //  Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
 
 //                                                                  //OLED显示屏初始化
@@ -38,20 +44,27 @@ int main(void)
   if(ret != 0){
     printf("Error State:%d\r\n",ret);
   }else{
+    
     printf("ESP8266 Init Success\r\n");
+    /*
     ESP8266_Pub_Data(180,Type_HR);
     delay_ms(100);
 		ESP8266_Pub_Data(80,Type_SPO2);
+    */
   }
     
   while (1)
   {
+    //scanf("%c",&str);
+    //printf("rcv : \r\n",str);
 		LED_ON(1);
 		LED_ON(3);
 		LED_ON(4);
 		LED_ON(5);
+    temperature = DS18B20_Get_Temp();                           //采集温度
+    printf("Temp:%f\r\n",temperature);
 		/*
-    DS18B20_Read_Temp(&temperature);                             //采集温度
+    
     Max30102_Read_FIFO(&RED,&IR);
     Max30102_Calculate(&RED,&IR,&SPO2_Value,&HR_Value);          //采集心率血氧
     MPU6050_Get_Accelerometer(&accel_x,&accel_y,&accel_z);      //采集三轴加速度

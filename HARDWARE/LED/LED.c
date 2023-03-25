@@ -63,3 +63,22 @@ void LED_OFF(int num)
 	}
 }
 
+void LED_Toggle(int num)
+{
+	switch(num){
+		case 1 : 
+			LED1_Port->ODR ^= LED1_Pin;
+			break;
+		case 3 : 
+			LED3_Port->ODR ^= LED3_Pin;
+			break;
+		case 4 : 
+			LED4_Port->ODR ^= LED4_Pin;
+			break;
+		case 5 : 
+			LED5_Port->ODR ^= LED5_Pin;
+			break;
+		default :
+			break;
+	}
+}
