@@ -3,6 +3,10 @@
 #define __DS18B20_H
 
 #include "stm32f10x.h"
+#include "sys.h"
+
+#define DS18B20_IN_STATUS               PAin(7)
+#define DS18B20_OUT_Data                PAout(7)
 
 #define DS18B20_PORT                    GPIOA
 #define DS18B20_Pin                     GPIO_Pin_7
@@ -22,9 +26,12 @@ enum mode_cmd
 
 #endif
 
-void DS18B20_Init(void);
+uint8_t DS18B20_Init(void);
 void DS18B20_Mode_Change(uint8_t mode_cmd);
-uint8_t DS18B20_Start(void);
-void DS18B20_Write_Byte(uint8_t data);
+void DS18B20_Rst(void);
+uint8_t DS18B20_Check(void);
+uint8_t DS18B20_Read_Bit(void);
 uint8_t DS18B20_Read_Byte(void);
-void DS18B20_Read_Temp(uint16_t* data);
+void DS18B20_Write_Byte(uint8_t data);
+void DS18B20_Start(void);
+short DS18B20_Get_Temp(void);

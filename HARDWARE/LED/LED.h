@@ -23,3 +23,5 @@
 void LED_Init(void);
 void LED_ON(int num);
 void LED_OFF(int num);
+void LED_Toggle(int num);
+

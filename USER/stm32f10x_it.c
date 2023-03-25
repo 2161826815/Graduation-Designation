@@ -87,75 +87,65 @@ void USART1_IRQHandler(void)         //Problem 1
 {
   uint8_t temp;
   if(USART_GetFlagStatus(Debug_Usart,USART_FLAG_RXNE) != RESET){
+    //USART_ClearITPendingBit(Debug_Usart,USART_IT_RXNE);
     temp = USART_ReceiveData(Debug_Usart);
-    USART_SendData(Debug_Usart,temp);
+    //USART_SendData(Debug_Usart,temp);
+    printf("h\r\n");
+    USART_Send_One_Byte(ESP8266_USARTX,temp);//串口调试ESP
     USART_ClearFlag(Debug_Usart, USART_FLAG_RXNE);
   }
 }
 
 void USART2_IRQHandler(void)     //ESP8266串口DMA空闲中断    
 {
-  extern uint8_t DMA_RCV_Buffer[1024];
+  extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
   extern uint8_t RCV_CNT;
-  
+#ifdef RXNE
   uint8_t temp;
   if(USART_GetFlagStatus(ESP8266_USARTX,USART_IT_RXNE) != RESET){
     temp = USART_ReceiveData(ESP8266_USARTX);
     DMA_RCV_Buffer[RCV_CNT++] = temp;
-    //USART_SendData(Debug_Usart,temp);
+    USART_SendData(Debug_Usart,temp);
     if(temp == '\0'){
       RCV_CNT = 0;
       //printf("rcv:%s",DMA_RCV_Buffer);
     }
     USART_ClearFlag(ESP8266_USARTX,USART_FLAG_RXNE);
-  /*
-	extern uint8_t RCV_CNT;
-  extern uint8_t DMA_RCV_Buffer[256];
-  if(USART_GetFlagStatus(ESP8266_USARTX,USART_FLAG_IDLE) != RESET){
-    USART_ReceiveData(ESP8266_USARTX);//这一条是为了清楚中断标志位
-    RCV_CNT = DMA_SIZE-DMA_GetCurrDataCounter(ESP8266_RX_DMA_CHANNEL);
-    if(RCV_CNT > 0){
-      if(strstr((const char*)DMA_RCV_Buffer,"LED1_ON") != NULL)
-          LED_ON(1);
-      if(strstr((const char*)DMA_RCV_Buffer,"LED1_OFF") != NULL)
-          LED_OFF(1);
-      if(strstr((const char*)DMA_RCV_Buffer,"LED3_ON") != NULL)
-          LED_ON(3);
-      if(strstr((const char*)DMA_RCV_Buffer,"LED3_OFF") != NULL)
-          LED_OFF(3);
-      if(strstr((const char*)DMA_RCV_Buffer,"LED4_ON") != NULL)
-          LED_ON(4);
-      if(strstr((const char*)DMA_RCV_Buffer,"LED4_OFF") != NULL)
-          LED_OFF(4);
-      if(strstr((const char*)DMA_RCV_Buffer,"LED5_ON") != NULL)
-          LED_ON(5);
-      if(strstr((const char*)DMA_RCV_Buffer,"LED5_OFF") != NULL)
-          LED_OFF(5);
-      if(strstr((const char*)DMA_RCV_Buffer,"BEEP_ON") != NULL)
-          BEEP_ON();
-      if(strstr((const char*)DMA_RCV_Buffer,"BEEP_OFF") != NULL)
-          BEEP_OFF();
-    }
-    USART_ClearFlag(ESP8266_USARTX,USART_FLAG_IDLE);
-    DMA_Reuse(ESP8266_RX_DMA_CHANNEL);
-    */
   }
+#endif
+#ifdef IDLE
+  if(USART_GetFlagStatus(ESP8266_USARTX,USART_FLAG_IDLE) == SET){
+    RCV_CNT = USART1->SR;
+    RCV_CNT = USART1->DR; //清USART_IT_IDLE标志
+    DMA_Cmd(ESP8266_RX_DMA_CHANNEL,DISABLE);
+    RCV_CNT = DMA_SIZE-DMA_GetCurrDataCounter(ESP8266_RX_DMA_CHANNEL);
+    //printf("cnt=%d\r\n",RCV_CNT);
+    DMA_SetCurrDataCounter(ESP8266_RX_DMA_CHANNEL,DMA_SIZE);//重新设置当前DMA容量
+
+
+    DMA_Cmd(ESP8266_RX_DMA_CHANNEL,ENABLE);
+    DMA_Reuse(ESP8266_RX_DMA_CHANNEL);
+    USART_ClearFlag(ESP8266_USARTX,USART_IT_IDLE);
+  }
+#endif
 }
 
 void EXTI9_5_IRQHandler(void)
 {
   //KEY3
   if(EXTI_GetITStatus(EXTI_Line8) == SET){
-		LED_ON(1);
+		LED_Toggle(1);
+    LED_Toggle(3);
     
-
+    ESP8266_Pub_Data(180,Type_HR);
 
     EXTI_ClearITPendingBit(EXTI_Line8);
   }
 
   //KEY4
   if(EXTI_GetITStatus(EXTI_Line9) == SET){
-
+    LED_Toggle(4);
+    LED_Toggle(5);
 
     EXTI_ClearITPendingBit(EXTI_Line9);
   }
