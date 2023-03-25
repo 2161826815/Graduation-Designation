@@ -14,7 +14,7 @@ void delay_ms(uint32_t ms)
     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
 #else
     while(ms--){
-        uint8_t i = 50000;
+        uint16_t i = 50000;
         while(i--);
     }
 #endif
