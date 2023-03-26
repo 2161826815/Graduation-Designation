@@ -15,6 +15,9 @@ uint8_t ESP_Data[255];
 uint8_t OLED_State=0;                                           //中断状态码开关OLED
 int main(void)
 {
+#if USE_HSI
+  delay_init();
+#endif
   uint8_t ret;                                                    //ESP8266初始化返回值
   char str;
   float temperature;                                           //温度值
@@ -23,6 +26,7 @@ int main(void)
 //  short accel_x,accel_y,accel_z;                                 //x,y,z轴的加速度
 //  short gyro_x,gyro_y,gyro_z;                                     //x,y,z轴的角速度
   Debug_USART_init();                                             //调试串口初始化
+	printf("1\r\n");
 	LED_Init();                                                     //LED初始化
   Key_Init();                                                     //独立按键初始化
 //  BEEP_Init();                                                    //蜂鸣器Init

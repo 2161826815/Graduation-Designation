@@ -39,16 +39,11 @@ uint8_t ESP8266_Wait(void)
 }
 
 
-static void delay()
-{
-    uint32_t i = 0xfffff;
-    while(i--);
-}
 
 //发送AT指令，成功返回0，失败返回1
 uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
 {
-    uint16_t timeout = 500;
+    uint16_t timeout = 5;
     while(timeout--){
         USART_Send_str(ESP8266_USARTX,cmd);
         //printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
@@ -57,9 +52,8 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
             printf("Recieve OK\r\n");
             return 0;
         }
-        delay();
           
-        //delay_ms(1000);
+        delay_ms(1000);
     }
     return 1;
 }
