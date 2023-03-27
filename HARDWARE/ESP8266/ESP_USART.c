@@ -46,7 +46,7 @@ void ESP8266_GPIO_Config(void)
     USART_DMACmd(ESP8266_USARTX,USART_DMAReq_Rx,ENABLE); //使能串口DMA接受
     
 
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA2,ENABLE);//DMAs时钟
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1,ENABLE);//DMAs时钟
     DMA_InitTypeDef DMA_Struct;
     DMA_Struct.DMA_BufferSize = DMA_SIZE;//
     DMA_Struct.DMA_DIR = DMA_DIR_PeripheralSRC; //DMA接受方向

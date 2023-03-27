@@ -30,12 +30,14 @@ int main(void)
 	LED_Init();                                                     //LED初始化
   Key_Init();                                                     //独立按键初始化
 //  BEEP_Init();                                                    //蜂鸣器Init
+/*
   ret = DS18B20_Init();                                                 //DS18B20 温度传感器初始化
   if(ret == 0){
     printf("DS18B20 Init Succes\r\n");
   }else{
     printf("DS18B20 Init Fail\r\n");
   }
+*/
 //  Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
 
 //                                                                  //OLED显示屏初始化
@@ -65,8 +67,9 @@ int main(void)
 		LED_ON(3);
 		LED_ON(4);
 		LED_ON(5);
-    temperature = DS18B20_Get_Temp();                           //采集温度
+/*  temperature = DS18B20_Get_Temp();                           //采集温度
     printf("Temp:%f\r\n",temperature);
+*/
 		/*
     
     Max30102_Read_FIFO(&RED,&IR);
