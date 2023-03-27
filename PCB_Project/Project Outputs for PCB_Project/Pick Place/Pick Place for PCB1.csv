@@ -1,0 +1,39 @@
+Altium Designer Pick and Place Locations
+C:\Users\86156\Desktop\Graduation_Design\最小系统\PCB_Project\Project Outputs for PCB_Project\Pick Place\Pick Place for PCB1.csv
+
+========================================================================================================================
+File Design Information:
+
+Date:       22/01/23
+Time:       20:11
+Revision:   Not in VersionControl
+Variant:    No variations
+Units used: mil
+
+"Designator","Comment","Layer","Footprint","Center-X(mil)","Center-Y(mil)","Rotation","Description"
+"Y1","8M","TopLayer","OSC_HC-49SMD","330.000","612.579","90","Crystal Oscillator"
+"U3","AMS1117-3.3","TopLayer","SOT223","1445.000","420.000","90","5V转3.3V"
+"U2","STM32F103C8T6","TopLayer","LQFP48_7X7_N","885.000","640.000","135",""
+"USB","USB-mrico","TopLayer","USB-MICRO_A","2187.316","405.000","90",""
+"RESET","SWITCH","TopLayer","TSW_SMD-3*6*5","2268.844","845.000","90","SWITCH"
+"R9","10K,0603","TopLayer","RES_0603","1860.000","320.000","270","Resistor"
+"R8","10K,0603","TopLayer","RES_0603","2003.500","295.000","0","Resistor"
+"R7","10K,0603","TopLayer","RES_0603","2003.500","510.000","180","Resistor"
+"R6","10K,0603","TopLayer","RES_0603","2003.500","410.000","180","Resistor"
+"R5","10K,0603","TopLayer","RES_0603","510.000","613.500","90","Resistor"
+"R4","10K,0603","TopLayer","RES_0603","1365.000","855.000","180","Resistor"
+"R3","10K,0603","TopLayer","RES_0603","445.000","1005.000","0","Resistor"
+"R2","10K,0603","TopLayer","RES_0603","2095.000","923.500","90","Resistor"
+"R1","10K,0603","TopLayer","RES_0603","1205.000","465.000","0","Resistor"
+"P3","Header 20","TopLayer","HDR2.54-LI-20P","1185.000","105.000","180","Header, 20-Pin"
+"P2","Header 20","TopLayer","HDR2.54-LI-20P","1185.000","1160.000","180","Header, 20-Pin"
+"P1","SWD","TopLayer","HDR2.54-WI-4P","105.000","620.000","270","Header, 4-Pin"
+"D2","LED","TopLayer","LED_0603R","1860.005","504.997","90",""
+"D1","LED","TopLayer","LED_0603R","1535.003","855.005","180",""
+"C7","105,0603","TopLayer","CAP_0603","1205.000","315.000","0","Capacitor"
+"C6","105,0603","TopLayer","CAP_0603","1205.000","385.000","0","Capacitor"
+"C5","105,0603","TopLayer","CAP_0603","1730.000","495.000","0","Capacitor"
+"C4","105,0603","TopLayer","CAP_0603","1730.000","315.000","0","Capacitor"
+"C3","105,0603","TopLayer","CAP_0603","510.000","420.000","90","Capacitor"
+"C2","105,0603","TopLayer","CAP_0603","2095.000","735.000","90","Capacitor"
+"C1","105,0603","TopLayer","CAP_0603","510.000","810.000","90","Capacitor"
