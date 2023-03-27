@@ -7,7 +7,7 @@ uint8_t ESP_STATE;
 
 uint8_t AT_CIPSNTPCFG[]="AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n";    //设置地区时间连接阿里云
 
-uint8_t AT_WIFI_INFO[]="AT+CWJAP=\"gidle\",\"2161826815\"\r\n";   //连接WIFI
+uint8_t AT_WIFI_INFO[]="AT+CWJAP=\"(G)I-DLE\",\"2161826815\"\r\n";   //连接WIFI
 
 //设置MQTT用户
 uint8_t AT_MQTTUSRCFG[]="AT+MQTTUSERCFG=0,1,\"NULL\",\"ESP8266&i5z42JpfDlV\",\"F153B43A65CC96889F0CEBF96984EE1993682453\",0,0,\"\"\r\n";
@@ -176,10 +176,10 @@ AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\
 */
 
 /*
-AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{"HeartRate\":66}\,\"version\":\"1.0\"}",1,0
+AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{\"HeartRate\":66}\,\"version\":\"1.0\"}",1,0
 */
 
 /*
-AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{"Temperature\":77.7}\,\"version\":\"1.0\"}",1,0
+AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{\"Temperature\":78.7}\,\"version\":\"1.0\"}",1,0
 */
 
