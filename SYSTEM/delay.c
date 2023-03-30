@@ -1,60 +1,56 @@
 #include "delay.h"
 
-#if USE_HSI
-static uint8_t nus = 0;
-static uint16_t nms = 0;
+uint32_t count;
 void delay_init(void)
 {
-    SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK_Div8); //8分频
-    nus = SystemCoreClock/8000000;
-    nms = (uint16_t)nus*1000;
+    SysTick->LOAD = (uint32_t)(SystemCoreClock/1000000-1UL);
+    SysTick->VAL = 0UL;
+    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk;
+    SysTick->CTRL &= -SysTick_CTRL_ENABLE_Msk;
 }
-#endif
+void delay_us(uint32_t time)
+{
+    count = time;
+    SysTick->VAL = 0;
+    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
+    while(count!=0);
+    SysTick->CTRL &= -SysTick_CTRL_ENABLE_Msk;
+}
 
+void delay_ms(uint32_t time)
+{
+    count = time*1000;
+    SysTick->VAL = 0;
+    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
+    while(count!=0);
+    SysTick->CTRL &= -SysTick_CTRL_ENABLE_Msk;
+}
+void SysTick_Handler(void)
+{
+    if(count != 0){
+        count--;
+    }
+}
+#if 0
 void delay_ms(uint32_t ms)
 {
     uint32_t i;
-#if USE_HSI
-    SysTick->LOAD = (uint32_t)ms*nms;
-    SysTick->VAL = 0x00;
-    SysTick->CTRL = SysTick_CTRL_ENABLE_Msk;
-    do{
-        i = SysTick->CTRL;
-    }while((i&0x01)&&!(i&(1<<16)));
-    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
-    SysTick->VAL = 0x00;
-#else
     SysTick_Config(72000);
-
+    printf("delay\r\n");
     for(i=0;i<ms;i++){
         while(!( (SysTick->CTRL) & (1<16) ));
     }
-
     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
-#endif
 }
 
 void delay_us(uint32_t us)
 {
     uint32_t i;
-#if USE_HSI
-    SysTick->LOAD = us*nus;
-    SysTick->VAL = 0x00;
-    SysTick->CTRL = SysTick_CTRL_ENABLE_Msk;
-    do{
-        i = SysTick->CTRL;
-    }while((i&0x01)&&!(i&(1<<16)));
-    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
-    SysTick->VAL = 0x00;
-#else
     SysTick_Config(72);
-
     for(i=0;i<us;i++){
         while(!( (SysTick->CTRL) & (1<16) ));
     }
-
     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
-#endif
 }
-
+#endif
 

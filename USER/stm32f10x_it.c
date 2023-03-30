@@ -74,15 +74,9 @@ void SVC_Handler(void)
 void DebugMon_Handler(void)
 {
 }
- 
 void PendSV_Handler(void)
 {
 }
- 
-void SysTick_Handler(void)
-{
-}
-
 void USART1_IRQHandler(void)         //Problem 1
 {
   uint8_t temp;
@@ -94,49 +88,6 @@ void USART1_IRQHandler(void)         //Problem 1
   }
 }
 
-void USART2_IRQHandler(void)     //ESP8266串口DMA空闲中断    
-{
-#ifdef RXNE
-  uint8_t temp;
-  extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
-  extern uint8_t RCV_CNT;
-  if(USART_GetFlagStatus(ESP8266_USARTX,USART_IT_RXNE) != RESET){
-    temp = USART_ReceiveData(ESP8266_USARTX);
-    DMA_RCV_Buffer[RCV_CNT++] = temp;
-    USART_SendData(Debug_Usart,temp);
-    if(temp == '\0'){
-      RCV_CNT = 0;
-      //printf("rcv:%s",DMA_RCV_Buffer);
-    }
-    USART_ClearFlag(ESP8266_USARTX,USART_FLAG_RXNE);
-  }
-#endif
-
-#ifdef IDLE
-  extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
-  extern uint8_t RCV_CNT;
-  if(USART_GetFlagStatus(ESP8266_USARTX,USART_FLAG_IDLE) == SET){
-    DMA_Cmd(ESP8266_RX_DMA_CHANNEL,DISABLE);
-    
-    RCV_CNT = USART1->SR;
-    RCV_CNT = USART1->DR; //清USART_IT_IDLE标志
-
-    
-    RCV_CNT = DMA_SIZE-DMA_GetCurrDataCounter(ESP8266_RX_DMA_CHANNEL);
-    if(RCV_CNT > 0){
-      printf("RCV:%s",DMA_RCV_Buffer);
-    }
-    //printf("CNT:%d\r\n",RCV_CNT);
-
-    DMA_SetCurrDataCounter(ESP8266_RX_DMA_CHANNEL,DMA_SIZE);//重新设置当前DMA容量
-    //USART_SendData(Debug_Usart,RCV_CNT);
-    
-    DMA_Cmd(ESP8266_RX_DMA_CHANNEL,ENABLE);
-    DMA_Reuse(ESP8266_RX_DMA_CHANNEL);
-    USART_ClearFlag(ESP8266_USARTX,USART_IT_IDLE);
-  }
-#endif
-}
 
 void EXTI9_5_IRQHandler(void)
 {

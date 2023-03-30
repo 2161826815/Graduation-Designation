@@ -38,8 +38,7 @@ uint8_t ESP8266_Wait(void)
         return 0;
 }
 
-
-
+uint8_t DMA_TC_STATUS = 0;
 //发送AT指令，成功返回0，失败返回1
 uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
 {
@@ -64,6 +63,7 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
     uint16_t timeout = 5;
     while(timeout--){
         USART_Send_str(ESP8266_USARTX,cmd);
+        while(!DMA_TC_STATUS);
         if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
             printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
             
@@ -72,13 +72,13 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
         }else{
             printf("Recieve Fail\r\n");
         }
+        
         ESP8266_RCV_Clear();
- 
+        DMA_TC_STATUS = 0;
+        printf("2adasdas\r\n");
         delay_ms(1000);
     }
-    printf("2\r\n");
 #endif
-
 
     return 1;
 }

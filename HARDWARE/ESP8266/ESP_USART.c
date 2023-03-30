@@ -1,5 +1,5 @@
 #include "ESP_USART.h"
-
+#include "USART.h"
 uint8_t DMA_RCV_Buffer[DMA_SIZE];
 
 void ESP8266_GPIO_Config(void)
@@ -54,13 +54,14 @@ void ESP8266_GPIO_Config(void)
     DMA_Struct.DMA_MemoryBaseAddr = (uint32_t)DMA_RCV_Buffer;
     DMA_Struct.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
     DMA_Struct.DMA_MemoryInc = DMA_MemoryInc_Enable;
-    DMA_Struct.DMA_Mode = DMA_Mode_Normal;
-    //DMA_Struct.DMA_Mode = DMA_Mode_Circular;
+    //DMA_Struct.DMA_Mode = DMA_Mode_Normal;
+    DMA_Struct.DMA_Mode = DMA_Mode_Circular;
     DMA_Struct.DMA_PeripheralBaseAddr = (uint32_t)&ESP8266_USARTX->DR;
     DMA_Struct.DMA_PeripheralDataSize = DMA_MemoryDataSize_Byte;
     DMA_Struct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
     DMA_Struct.DMA_Priority = DMA_Priority_High;
     DMA_Init(ESP8266_RX_DMA_CHANNEL,&DMA_Struct); //DMA1 通道6 串口2接收
+    DMA_ITConfig(ESP8266_RX_DMA_CHANNEL,DMA_IT_TC,ENABLE);
     DMA_ClearFlag(DMA1_IT_TC6);
     DMA_Cmd(ESP8266_RX_DMA_CHANNEL,ENABLE); //使能
 #endif
@@ -88,21 +89,46 @@ void DMA_Reuse(DMA_Channel_TypeDef* DMA_CHx)
     DMA_Cmd(DMA_CHx, ENABLE);  //打开USART1 TX DMA1所指示的通道  
 }
 
-/*
-void USARTx_Send_data(USART_TypeDef *USARTx, char *fmt,...)
+
+void USART2_IRQHandler(void)     //ESP8266串口DMA空闲中断    
 {
-	unsigned char UsartPrintfBuf[256];
-	va_list ap;
-	unsigned char *pStr = UsartPrintfBuf;
-	
-	va_start(ap, fmt);
-	vsnprintf((char *)UsartPrintfBuf, sizeof(UsartPrintfBuf), fmt, ap);							//格式化
-	va_end(ap);
-	
-	while(*pStr != 0)
-	{
-		USART_SendData(USARTx, *pStr++);
-		while(USART_GetFlagStatus(USARTx, USART_FLAG_TC) == RESET);
-	}
+#ifdef RXNE
+  uint8_t temp;
+  extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
+  extern uint8_t RCV_CNT;
+  if(USART_GetFlagStatus(ESP8266_USARTX,USART_IT_RXNE) != RESET){
+    temp = USART_ReceiveData(ESP8266_USARTX);
+    DMA_RCV_Buffer[RCV_CNT++] = temp;
+    USART_SendData(Debug_Usart,temp);
+    if(temp == '\0'){
+      RCV_CNT = 0;
+      //printf("rcv:%s",DMA_RCV_Buffer);
+    }
+    USART_ClearFlag(ESP8266_USARTX,USART_FLAG_RXNE);
+  }
+#endif
+
+#ifdef IDLE
+  if(USART_GetFlagStatus(ESP8266_USARTX,USART_FLAG_IDLE) == SET){
+    uint8_t temp;
+    temp = USART1->SR;
+    temp = USART1->DR; //清USART_IT_IDLE标志
+
+    USART_ClearFlag(ESP8266_USARTX,USART_IT_IDLE);
+  }
+#endif
 }
-*/
+
+void DMA1_Channel6_IRQHandler(void)
+{
+    printf("1dasca\r\n");
+    extern uint8_t DMA_TC_STATUS;
+    extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
+    extern uint8_t RCV_CNT;
+    if(DMA_GetITStatus(DMA1_IT_TC6)){
+        RCV_CNT = DMA_SIZE-DMA_GetCurrDataCounter(ESP8266_RX_DMA_CHANNEL);
+        DMA_TC_STATUS = 1;
+        DMA_SetCurrDataCounter(ESP8266_RX_DMA_CHANNEL,DMA_SIZE);
+        DMA_ClearITPendingBit(DMA1_IT_TC6);
+    }
+}
