@@ -99,7 +99,7 @@ void USART2_IRQHandler(void)     //ESP8266串口DMA空闲中断
   if(USART_GetFlagStatus(ESP8266_USARTX,USART_IT_RXNE) != RESET){
     temp = USART_ReceiveData(ESP8266_USARTX);
     DMA_RCV_Buffer[RCV_CNT++] = temp;
-    USART_SendData(Debug_Usart,temp);
+    //USART_SendData(Debug_Usart,temp);
     if(temp == '\0'){
       RCV_CNT = 0;
       //printf("rcv:%s",DMA_RCV_Buffer);
@@ -109,16 +109,25 @@ void USART2_IRQHandler(void)     //ESP8266串口DMA空闲中断
 #endif
 
 #ifdef IDLE
+    
   if(USART_GetFlagStatus(ESP8266_USARTX,USART_FLAG_IDLE) == SET){
+    extern uint8_t DMA_TC_STATUS;
+    extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
+    extern uint8_t RCV_CNT;
     uint8_t temp;
     temp = USART1->SR;
     temp = USART1->DR; //清USART_IT_IDLE标志
-
+    RCV_CNT = DMA_SIZE-DMA_GetCurrDataCounter(ESP8266_RX_DMA_CHANNEL);
+    DMA_TC_STATUS = 1;
+    DMA_TC_STATUS = 1;
+    DMA_Cmd(ESP8266_RX_DMA_CHANNEL,DISABLE);
+    DMA_SetCurrDataCounter(ESP8266_RX_DMA_CHANNEL,DMA_SIZE);
+    DMA_Cmd(ESP8266_RX_DMA_CHANNEL,ENABLE);
     USART_ClearFlag(ESP8266_USARTX,USART_IT_IDLE);
   }
 #endif
 }
-
+/*
 void DMA1_Channel6_IRQHandler(void)
 {
     printf("1dasca\r\n");
@@ -132,3 +141,4 @@ void DMA1_Channel6_IRQHandler(void)
         DMA_ClearITPendingBit(DMA1_IT_TC6);
     }
 }
+*/

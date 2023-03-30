@@ -44,17 +44,18 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
 {
 //串口接收中断
 #ifdef RXNE
-    uint16_t timeout = 1500;
+    uint16_t timeout = 50;
     while(timeout--){
         USART_Send_str(ESP8266_USARTX,cmd);
         if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
-            printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
+            //printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
             ESP8266_RCV_Clear();
-            printf("Recieve OK\r\n");
+            //printf("Recieve OK\r\n");
             return 0;
         }else{
+
         }
-        delay_ms(1000);
+        delay_ms(10);
     }
 #endif
 

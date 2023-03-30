@@ -27,13 +27,15 @@ int main(void)
 	LED_Init();                                                     //LED初始化
   Key_Init();                                                     //独立按键初始化
 //  BEEP_Init();                                                    //蜂鸣器Init
-/*
-  ret = DS18B20_Init();                                                 //DS18B20 温度传感器初始化
-  if(ret == 0){
-    printf("DS18B20 Init Succes\r\n");
+
+
+  DS18B20_Init();                                            //DS18B20 温度传感器初始化
+  /*
+  if(ret==0){
+    printf("DS18B20 Init Success\r\n");
   }else{
     printf("DS18B20 Init Fail\r\n");
-  }
+  } 
 */
 //  Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
 
@@ -42,6 +44,7 @@ int main(void)
 //	OLED_Init();
 //	OLED_Clear(0);                                                  //清屏
 //	MPU6050_Init();                                                 //MPU6050 角速度，加速度传感器初始化
+/*
   ret = ESP8266_Init();                                           //ESP8266 WIFI模块初始化
 
   if(ret != 0){
@@ -49,12 +52,8 @@ int main(void)
   }else{
     
     printf("ESP8266 Init Success\r\n");
-    /*
-    ESP8266_Pub_Data(180,Type_HR);
-    delay_ms(100);
-		ESP8266_Pub_Data(80,Type_SPO2);
-    */
-  } 
+  }
+*/ 
   while (1)
   {
     //scanf("%c",&str);
@@ -63,9 +62,9 @@ int main(void)
 		LED_ON(3);
 		LED_ON(4);
 		LED_ON(5);
-/*  temperature = DS18B20_Get_Temp();                           //采集温度
+		DS18B20_Read_Temp(&temperature);                           //采集温度
     printf("Temp:%f\r\n",temperature);
-*/
+
 		/*
     
     Max30102_Read_FIFO(&RED,&IR);

@@ -6,8 +6,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define IDLE
-//#define RXNE
+//#define IDLE
+#define RXNE
 
 #define ESP8266_Port                    GPIOA
 #define ESP8266_Pin_TX                  GPIO_Pin_2
