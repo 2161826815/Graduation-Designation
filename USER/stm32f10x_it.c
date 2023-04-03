@@ -96,7 +96,7 @@ void EXTI9_5_IRQHandler(void)
 		LED_Toggle(1);
     LED_Toggle(3);
     
-    ESP8266_Pub_Data(180,Type_SPO2);
+    //ESP8266_Pub_Data(180,Type_SPO2);
     
     //ESP8266_Pub_Data(37.7,Type_Temperature);
 
@@ -107,7 +107,7 @@ void EXTI9_5_IRQHandler(void)
   if(EXTI_GetITStatus(EXTI_Line9) == SET){
     LED_Toggle(4);
     LED_Toggle(5);
-    ESP8266_Pub_Data(32.2,Type_Temperature);
+    //ESP8266_Pub_Data(32.2,Type_Temperature);
     EXTI_ClearITPendingBit(EXTI_Line9);
   }
     
