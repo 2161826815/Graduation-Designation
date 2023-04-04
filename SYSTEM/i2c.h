@@ -3,7 +3,7 @@
 #define __I2C_H
 
 #include "stm32f10x.h"
-
+#include "USART.h"
 #define I2C_GPIO_Port 			    GPIOB
 #define I2C_GPIO_CLK                RCC_APB2Periph_GPIOB
 #define I2C_Speed                   400000

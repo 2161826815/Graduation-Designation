@@ -142,9 +142,9 @@ void ESP8266_Pub_Data(float data,int type)
 1,0\r\n",data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub data Success\r\n");
+            printf("Pub Temperature Success\r\n");
         }else{
-            printf("Pub Data Fail\r\n");
+            printf("Pub Temperature Fail\r\n");
         }
         break;
     case Type_HR:
@@ -156,11 +156,10 @@ void ESP8266_Pub_Data(float data,int type)
 \\\"version\\\":\\\"1.0\\\"}\",\
 1,0\r\n",(uint32_t)data);
 
-        printf("%s",Pub_Data);
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub data Success\r\n");
+            printf("Pub HR Success\r\n");
         }else{
-            printf("Pub Data Fail\r\n");
+            printf("Pub HR Fail\r\n");
         }
         break;
        
@@ -173,9 +172,9 @@ void ESP8266_Pub_Data(float data,int type)
 1,0\r\n",(uint32_t)data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub data Success\r\n");
+            printf("Pub SPO2 Success\r\n");
         }else{
-            printf("Pub Data Fail\r\n");
+            printf("Pub SPO2 Fail\r\n");
         }  
         break;
 

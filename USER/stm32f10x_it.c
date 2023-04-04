@@ -110,7 +110,12 @@ void EXTI9_5_IRQHandler(void)
     //ESP8266_Pub_Data(32.2,Type_Temperature);
     EXTI_ClearITPendingBit(EXTI_Line9);
   }
-    
+  //MAX30102
+  if(EXTI_GetITStatus(EXTI_Line5) == SET){
+    printf("Max30102\r\n");
+
+    EXTI_ClearITPendingBit(EXTI_Line5);
+  }
 }
 
 void EXTI15_10_IRQHandler(void)

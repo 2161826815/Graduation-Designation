@@ -11,15 +11,28 @@
 #include "ESP8266.h"
 #include "USART.h"
 #include "MPU6050.h"
+
+#define ESP_ON_OFF 0
+#define DS18B20_ON_OFF 0
+#define MAX30102_ON_OFF 0
+
+#if ESP_ON_OFF
 uint8_t ESP_Data[255];
+#endif
 uint8_t OLED_State=0;                                           //中断状态码开关OLED
 int main(void)
 {
   uint8_t ret;                                                    //ESP8266初始化返回值
   char str;
+
+#if DS18B20_ON_OFF
   float last_temperature = 0,cur_temperature = 0;                                           //温度值
-//  uint32_t RED, IR;                                               //红光和红外光
-//  int32_t SPO2_Value,HR_Value;                                    //血氧值和心率值
+#endif
+
+#if MAX30102_ON_OFF
+  uint32_t RED, IR;                                               //红光和红外光
+  int32_t SPO2_Value,HR_Value;                                    //血氧值和心率值
+#endif
 //  short accel_x,accel_y,accel_z;                                 //x,y,z轴的加速度
 //  short gyro_x,gyro_y,gyro_z;                                     //x,y,z轴的角速度
   Debug_USART_init();                                             //调试串口初始化
@@ -27,17 +40,28 @@ int main(void)
 	LED_Init();                                                     //LED初始化
   Key_Init();                                                     //独立按键初始化
 //  BEEP_Init();                                                    //蜂鸣器Init
-	
-	delay_ms(1000);
+
+#if MAX30102_ON_OFF
+		Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
+#endif
+
+#if ESP_ON_OFF
+	ret = ESP8266_Init();                                           //ESP8266 WIFI模块初始化
+  if(ret != 0){
+    printf("Error State:%d\r\n",ret);
+  }else{
+    printf("ESP8266 Init Success\r\n");
+  }
+#endif
+
+#if DS18B20_ON_OFF
   ret = DS18B20_Init();                                            //DS18B20 温度传感器初始化
-  
   if(ret==0){
     printf("DS18B20 Init Success\r\n");
   }else{
     printf("DS18B20 Init Fail\r\n");
   } 
-
-//  Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
+#endif
 
 //                                                                  //OLED显示屏初始化
 //  NVIC_Configuration();
@@ -45,38 +69,43 @@ int main(void)
 //	OLED_Clear(0);                                                  //清屏
 //	MPU6050_Init();                                                 //MPU6050 角速度，加速度传感器初始化
 
-  ret = ESP8266_Init();                                           //ESP8266 WIFI模块初始化
-
-  if(ret != 0){
-    printf("Error State:%d\r\n",ret);
-  }else{
-    
-    printf("ESP8266 Init Success\r\n");
-  }
 
 		LED_ON(1);
 		LED_ON(3);
 		LED_ON(4);
 		LED_ON(5);
+#if MAX30102_ON_OFF
+    Max30102_Get_First_Sample(&RED,&IR,&SPO2_Value,&HR_Value);
+#endif    
   while (1)
   {
-    //scanf("%c",&str);
-    //printf("rcv : \r\n",str);
-		
+#if DS18B20_ON_OFF		
 		cur_temperature = DS18B20_Read_Temp();                           //采集温度
     if(cur_temperature != last_temperature){
       printf("Temp:%f\r\n",cur_temperature);
+#if ESP_ON_OFF
       ESP8266_Pub_Data(cur_temperature,Type_Temperature);
+#endif
       last_temperature = cur_temperature;
     }else{
 
     }
-    
-		//delay_ms(500);
-		/*
-    
-    Max30102_Read_FIFO(&RED,&IR);
+#endif
+
+#if MAX30102_ON_OFF
+    /* Max30102_Read_FIFO(&RED,&IR);
+    Max30102_Get_First_Sample(&RED,&IR,&SPO2_Value,&HR_Value); */
     Max30102_Calculate(&RED,&IR,&SPO2_Value,&HR_Value);          //采集心率血氧
+    //printf("RED:%d ,IR:%d\r\n",RED,IR);
+    if(SPO2_Value != 0 && HR_Value != 0){
+      printf("SPO2:%d%%,HR:%d\r\n",SPO2_Value,HR_Value);
+#if ESP_ON_OFF
+			ESP8266_Pub_Data(SPO2_Value,Type_SPO2);
+			ESP8266_Pub_Data(HR_Value,Type_HR);
+#endif
+    }
+#endif
+		/*
     MPU6050_Get_Accelerometer(&accel_x,&accel_y,&accel_z);      //采集三轴加速度
     MPU6050_Get_Gyroscope(&gyro_x,&gyro_y,&gyro_z);              //采集三轴角速度
                        
