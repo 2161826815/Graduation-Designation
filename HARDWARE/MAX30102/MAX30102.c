@@ -101,30 +101,7 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
     uint32_t min1_data=0x3ffff;
     uint32_t max1_data=0;
     uint16_t IR_Buffrt_Length = 500;
-//    for(i=0;i<IR_Buffrt_Length;i++){
-//        while(MAX30102_IT_STATUS() == 1); //until Intertupt assert
 
-//        Max30102_Read_FIFO(RED,IR); //read FIFO data
-//        IR_Buffer[i]  = *IR;
-//        RED_Buffer[i] = *RED;
-
-//        if(min1_data>RED_Buffer[i])          //updata min and max data
-//            min1_data = RED_Buffer[i];
-//        if(max1_data < RED_Buffer[i])
-//            max1_data = RED_Buffer[i];
-//    } 
-//    //pre_data = RED_Buffer[i];
-
-//    //calculate heart rate and SpO2 after first 500 samples (first 5 seconds of samples)
-//    maxim_heart_rate_and_oxygen_saturation(IR_Buffer,IR_Buffrt_Length,RED_Buffer,SPO2_Value,&SPO2_Valid,HR_Value,&HR_Valid);
-
-//    if(!((((HR_Valid==1) && ((*HR_Value)<150))) && (SPO2_Valid==1 && (((*SPO2_Value)<100) &&((*SPO2_Value)>90))))){
-//        *HR_Value = 0;
-//        *SPO2_Value = 0;
-//    }
-    
-
-     //dumping the first 100 sets of samples in the memory and shift the last 400 sets of samples to the top
     for(i=100;i<IR_Buffrt_Length;i++){
         RED_Buffer[i-100] = RED_Buffer[i];
         IR_Buffer[i-100] = IR_Buffer[i];
