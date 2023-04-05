@@ -11,10 +11,8 @@
 #include "ESP8266.h"
 #include "USART.h"
 #include "MPU6050.h"
+#include "main.h"
 
-#define ESP_ON_OFF 0
-#define DS18B20_ON_OFF 0
-#define MAX30102_ON_OFF 0
 
 #if ESP_ON_OFF
 uint8_t ESP_Data[255];
@@ -23,7 +21,6 @@ uint8_t OLED_State=0;                                           //中断状态�
 int main(void)
 {
   uint8_t ret;                                                    //ESP8266初始化返回值
-  char str;
 
 #if DS18B20_ON_OFF
   float last_temperature = 0,cur_temperature = 0;                                           //温度值
@@ -33,14 +30,19 @@ int main(void)
   uint32_t RED, IR;                                               //红光和红外光
   int32_t SPO2_Value,HR_Value;                                    //血氧值和心率值
 #endif
-//  short accel_x,accel_y,accel_z;                                 //x,y,z轴的加速度
-//  short gyro_x,gyro_y,gyro_z;                                     //x,y,z轴的角速度
+
+#if MPU6050_ON_OFF
+  short accel_x,accel_y,accel_z;                                 //x,y,z轴的加速度
+  short gyro_x,gyro_y,gyro_z;                                     //x,y,z轴的角速度
+#endif
+
   Debug_USART_init();                                             //调试串口初始化
   delay_init();                                                   //Systick初始化
 	LED_Init();                                                     //LED初始化
   Key_Init();                                                     //独立按键初始化
-//  BEEP_Init();                                                    //蜂鸣器Init
-
+#if BEEP_ON_OFF
+  BEEP_Init();                                                    //蜂鸣器Init
+#endif
 #if MAX30102_ON_OFF
 		Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
 #endif
@@ -63,12 +65,26 @@ int main(void)
   } 
 #endif
 
-//                                                                  //OLED显示屏初始化
-//  NVIC_Configuration();
-//	OLED_Init();
-//	OLED_Clear(0);                                                  //清屏
-//	MPU6050_Init();                                                 //MPU6050 角速度，加速度传感器初始化
+#if OLED_ON_OFF
+	OLED_Init();
+	OLED_Clear(0);                                                  //清屏
+#endif
 
+#if MPU6050_ON_OFF
+	ret = MPU6050_Init();                                                 //MPU6050 角速度，加速度传感器初始化
+  if(!ret){
+    printf("MPU6050 Init Success\r\n");
+  }else{
+    printf("MPU6050 Init Fail\r\n");
+  }
+  
+  ret = mpu_dmp_init();
+  if(ret == 0){
+    printf("DMP Init Success\r\n");
+  }else{
+    printf("DMP Init Fail,ERR Code:%d\r\n",ret);
+  }
+#endif
 
 		LED_ON(1);
 		LED_ON(3);
@@ -105,10 +121,22 @@ int main(void)
 #endif
     }
 #endif
-		/*
-    MPU6050_Get_Accelerometer(&accel_x,&accel_y,&accel_z);      //采集三轴加速度
-    MPU6050_Get_Gyroscope(&gyro_x,&gyro_y,&gyro_z);              //采集三轴角速度
-                       
+
+#if MPU6050_ON_OFF
+    float pitch;
+    float roll;
+    float yaw;
+    if(mpu_dmp_get_data(&pitch,&roll,&yaw) == 0){
+      MPU6050_Get_Accelerometer(&accel_x,&accel_y,&accel_z);
+      MPU6050_Get_Gyroscope(&gyro_x,&gyro_y,&gyro_z);
+      printf("Pitch:  %f\r\n",(float)pitch);
+			printf("Roll:  %f\r\n",(float)roll);
+			printf("yaw:  %f\r\n",(float)yaw);
+    }
+#endif 
+
+  //GUI_ShowNum(24,8,5,10,8,1);
+/*                   
     if(temperature > 40){
       LED_ON(1);
       BEEP_ON();

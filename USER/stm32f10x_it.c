@@ -30,6 +30,7 @@
 #include "beep.h"
 #include "ESP8266.h"
 #include "oled.h"
+#include "main.h"
 void NMI_Handler(void)
 {
 }
@@ -107,6 +108,9 @@ void EXTI9_5_IRQHandler(void)
   if(EXTI_GetITStatus(EXTI_Line9) == SET){
     LED_Toggle(4);
     LED_Toggle(5);
+#if BEEP_ON_OFF
+    BEEP_Toggle();
+#endif
     //ESP8266_Pub_Data(32.2,Type_Temperature);
     EXTI_ClearITPendingBit(EXTI_Line9);
   }

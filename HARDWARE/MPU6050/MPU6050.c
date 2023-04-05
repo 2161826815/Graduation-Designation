@@ -1,27 +1,43 @@
 #include "MPU6050.h"
-
-uint8_t MPU6050_Write_Bytes(uint8_t slave_addr,uint8_t reg_addr,uint8_t num,uint8_t* data)
-{
+#include "soft_I2C.h"
+uint8_t MPU6050_Write_Bytes(uint8_t slave_addr,uint8_t reg_addr,uint8_t num,uint8_t const* data)
+{  
+#if USE_Soft_I2C
+    soft_i2c_write_bytes(MPU6050_I2C,slave_addr,reg_addr,data,num);
+#else
     I2C_write_Bytes(MPU6050_I2C,slave_addr,reg_addr,data,num);
+#endif
     return 0;
 }
 
 uint8_t MPU6050_Write_One_Byte(uint8_t slave_addr,uint8_t reg_addr,uint8_t num,uint8_t data)
 {
+#if USE_Soft_I2C
+    soft_i2c_write_byte(MPU6050_I2C,slave_addr,reg_addr,data,num);
+#else
     I2C_write_OneByte(MPU6050_I2C,slave_addr,reg_addr,data,num);
+#endif
     return 0;
 }
 
 uint8_t MPU6050_Read_Bytes(uint8_t slave_addr,uint8_t reg_addr,uint8_t num,uint8_t* data)
 {
+#if USE_Soft_I2C
+    soft_i2c_read_data(MPU6050_I2C,slave_addr,reg_addr,data,num);
+#else
     I2C_read_Bytes(MPU6050_I2C,slave_addr,reg_addr,data,num);
+#endif
     return 0;
 }
 
-void MPU6050_Init(void)
+uint8_t MPU6050_Init(void)
 {
     uint8_t res;
+#if USE_Soft_I2C
+    soft_i2c_config();
+#else
     I2C_Config();
+#endif
     MPU6050_Write_One_Byte(MPU6050_ADDR,MPU6050_PWR_MGMT1_REG,1,0x80);    //复位
     delay_ms(100);
     MPU6050_Write_One_Byte(MPU6050_ADDR,MPU6050_PWR_MGMT1_REG,1,0x00);    //唤醒
@@ -31,13 +47,17 @@ void MPU6050_Init(void)
     MPU6050_Write_One_Byte(MPU6050_ADDR,MPU6050_USER_CTRL_REG,1,0X00);    //关闭主模式
     MPU6050_Write_One_Byte(MPU6050_ADDR,MPU6050_FIFO_EN_REG,1,0X00);      //关闭FIFO
     MPU6050_Write_One_Byte(MPU6050_ADDR,MPU6050_INTBP_CFG_REG,1,0X80);    //INT引脚低电平有效
-
+    
     MPU6050_Read_Bytes(MPU6050_ADDR,MPU6050_DEVICE_ID_REG,1,&res);   //判断是否成功连接MPU6050
+    printf("ADDR:%x\r\n",res);
     if(res == MPU6050_ADDR){
         MPU6050_Write_One_Byte(MPU6050_ADDR,MPU6050_PWR_MGMT1_REG,1,0X01);//设置CLKSEL,PLL X轴为参考
         MPU6050_Write_One_Byte(MPU6050_ADDR,MPU6050_PWR_MGMT2_REG,1,0X00);//加速度和陀螺仪都工作
         MPU6050_Set_Rate(50);
+        return 0;
+    }else{
     }
+    return 1;
 }
 
 void MPU6050_Set_LPF(uint16_t lpf)

@@ -53,6 +53,7 @@
 //定义IIC从设备地址
 #define IIC_SLAVE_ADDR 0x78
 
+#define USE_MY_SOFT_I2C 1
 
 //--------------IIC总线引脚定义-----------------------
 #define OLED_SDA       GPIO_Pin_3  //OLED屏IIC数据信号		//2023/2/5/17:43

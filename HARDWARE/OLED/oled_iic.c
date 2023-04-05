@@ -43,6 +43,7 @@
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
 ****************************************************************************************************/		
 #include "oled_iic.h"
+#include "soft_I2C.h"
 
 /*****************************************************************************
  * @name       :void IIC_Start(void)
@@ -53,10 +54,14 @@
 ******************************************************************************/
 void IIC_Start(void)
 {
+#if USE_MY_SOFT_I2C
+	soft_i2c_start();
+#else
 	OLED_SCL_SET();
 	OLED_SDA_SET();
 	OLED_SDA_CLR();
 	OLED_SCL_CLR();
+#endif
 }
 
 /*****************************************************************************
@@ -68,9 +73,13 @@ void IIC_Start(void)
 ******************************************************************************/
 void IIC_Stop(void)
 {
+#if USE_MY_SOFT_I2C
+	soft_i2c_stop();
+#else	
 	OLED_SCL_SET();
 	OLED_SDA_CLR();
 	OLED_SDA_SET();
+#endif
 }
 
 /*****************************************************************************
@@ -82,8 +91,12 @@ void IIC_Stop(void)
 ******************************************************************************/
 void IIC_Wait_Ack(void)
 {
+#if USE_MY_SOFT_I2C
+	soft_i2c_wait_ack();
+#else
 	OLED_SCL_SET();
 	OLED_SCL_CLR();
+#endif
 }
 
 /*****************************************************************************
@@ -95,6 +108,9 @@ void IIC_Wait_Ack(void)
 ******************************************************************************/
 void Write_IIC_Byte(u8 IIC_Byte)
 {
+#if USE_MY_SOFT_I2C
+	soft_i2c_send_byte(IIC_Byte);
+#else
 	u8 i;
 	u8 m,da;
 	da=IIC_Byte;
@@ -115,6 +131,7 @@ void Write_IIC_Byte(u8 IIC_Byte)
 		OLED_SCL_SET();
 		OLED_SCL_CLR();
 		}
+#endif
 }
 
 /*****************************************************************************
@@ -126,6 +143,9 @@ void Write_IIC_Byte(u8 IIC_Byte)
 ******************************************************************************/
 void Write_IIC_Command(u8 IIC_Command)
 {
+#if USE_MY_SOFT_I2C
+	soft_i2c_write_byte(I2C1,IIC_SLAVE_ADDR,0x00,IIC_Command,1);
+#else
 	IIC_Start();
 	Write_IIC_Byte(IIC_SLAVE_ADDR);            //Slave address,SA0=0
 	IIC_Wait_Ack();	
@@ -134,6 +154,7 @@ void Write_IIC_Command(u8 IIC_Command)
 	Write_IIC_Byte(IIC_Command); 
 	IIC_Wait_Ack();	
 	IIC_Stop();
+#endif
 }
 
 /*****************************************************************************
@@ -145,12 +166,16 @@ void Write_IIC_Command(u8 IIC_Command)
 ******************************************************************************/
 void Write_IIC_Data(u8 IIC_Data)
 {
+#if USE_MY_SOFT_I2C
+	soft_i2c_write_byte(I2C1,IIC_SLAVE_ADDR,0x40,IIC_Data,1);
+#else
 	IIC_Start();
-	Write_IIC_Byte(IIC_SLAVE_ADDR);			//D/C#=0; R/W#=0
+	Write_IIC_Byte(c);			//D/C#=0; R/W#=0
 	IIC_Wait_Ack();	
 	Write_IIC_Byte(0x40);			//write data
 	IIC_Wait_Ack();	
 	Write_IIC_Byte(IIC_Data);
 	IIC_Wait_Ack();	
 	IIC_Stop();
+#endif
 }

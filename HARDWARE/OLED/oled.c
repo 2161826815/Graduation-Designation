@@ -47,6 +47,7 @@
 #include "string.h" 	 
 #include "delay.h"
 #include "oled_iic.h"
+#include "soft_I2C.h"
 //OLED显存总共分为8页
 //每页8行，一行128个像素点
 //OLED的显存
@@ -269,13 +270,17 @@ void OLED_Clear(unsigned dat)
 ********************************************************************/ 
 void OLED_Init_GPIO(void)
 {
+#if USE_MY_SOFT_I2C
+	soft_i2c_config();
+#else
 	GPIO_InitTypeDef  GPIO_InitStructure;
  	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);	 //使能B端口时钟
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4;	//GPIOB3,4
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;//速度50MHz
  	GPIO_Init(GPIOB, &GPIO_InitStructure);	  //初始化GPIOB3、4
- 	GPIO_SetBits(GPIOB,GPIO_Pin_3|GPIO_Pin_4);	
+ 	GPIO_SetBits(GPIOB,GPIO_Pin_3|GPIO_Pin_4);
+#endif
 }
 
 /*******************************************************************

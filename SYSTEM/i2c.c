@@ -32,11 +32,11 @@ void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uin
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
     //EV5
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
-
+    
     I2C_Send7bitAddress(I2Cx,slave_addr,I2C_Direction_Transmitter); //send slave addr
     //EV6
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
-
+    printf("1\r\n");
     I2C_SendData(I2Cx,reg_addr); //send register addr
     //EV8
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
@@ -48,7 +48,7 @@ void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uin
     I2C_GenerateSTOP(I2Cx,ENABLE);
 }
 
-void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t *data,uint8_t num)
+void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t const*data,uint8_t num)
 {
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
     //EV5

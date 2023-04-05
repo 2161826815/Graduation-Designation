@@ -8,10 +8,10 @@
 #include "MPU6050.h"
 #include "delay.h"
 #include "usart.h"
-
+#include "soft_I2C.h"
 
 #define MPU6050							//定义我们使用的传感器为MPU6050
-#define MOTION_DRIVER_TARGET_MSP430		//定义驱动部分,采用MSP430的驱动(移植到STM32F1)
+#define MOTION_DRIVER_TARGET_STM32F1		//定义驱动部分,采用MSP430的驱动(移植到STM32F1)
 
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,
@@ -25,7 +25,7 @@
  * fabsf(float x)
  * min(int a, int b)
  */
-#if defined MOTION_DRIVER_TARGET_MSP430
+#if defined MOTION_DRIVER_TARGET_STM32F1
 //#include "msp430.h"
 //#include "msp430_i2c.h"
 //#include "msp430_clock.h"
@@ -2936,9 +2936,13 @@ void mget_ms(unsigned long *time)
 u8 mpu_dmp_init(void)
 {
 	u8 res=0;
-	//MPU_IIC_Init(); 	//初始化IIC总线
+#if USE_Soft_I2C
+    soft_i2c_config();
+#else
+	I2C_Config(); 	//初始化IIC总线
+#endif
 	if(mpu_init()==0)	//初始化MPU6050
-	{	 
+	{ 
 		res=mpu_set_sensors(INV_XYZ_GYRO|INV_XYZ_ACCEL);//设置所需要的传感器
 		if(res)return 1; 
 		res=mpu_configure_fifo(INV_XYZ_GYRO|INV_XYZ_ACCEL);//设置FIFO

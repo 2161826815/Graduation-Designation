@@ -10,6 +10,7 @@ void BEEP_Init(void)
 	BEEP_Struct.GPIO_Speed = GPIO_Speed_50MHz;
 	
 	GPIO_Init(BEEP_Port,&BEEP_Struct);
+	GPIO_SetBits(BEEP_Port,BEEP_Pin);
 
 }
 
@@ -25,3 +26,7 @@ void BEEP_OFF(void)
 
 }
 
+void BEEP_Toggle(void)
+{
+	BEEP_Port->ODR ^= BEEP_Pin;
+}

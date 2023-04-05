@@ -103,14 +103,14 @@ uint8_t soft_i2c_wait_ack()
     return ret;
 }
 
-void soft_i2c_read_data(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t state,uint8_t *data,uint8_t num)
+void soft_i2c_read_data(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t *data,uint8_t num)
 {
     uint8_t i=0;
     soft_i2c_start();
     soft_i2c_send_byte((addr<<1) | 0x00); //send addr
     while(soft_i2c_wait_ack());
-    soft_i2c_send_byte(state);
-    while(soft_i2c_wait_ack()); //send state
+    soft_i2c_send_byte(position);
+    while(soft_i2c_wait_ack()); //send position
     
     soft_i2c_start();
     soft_i2c_send_byte((addr<<1) | 0x01); //send read signal
@@ -126,7 +126,21 @@ void soft_i2c_read_data(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t state,uint8_t *da
     soft_i2c_stop();
 }
 
-void soft_i2c_write_data(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t *array,uint8_t num)
+void soft_i2c_write_byte(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t byte,uint8_t num)
+{
+    soft_i2c_start();
+    soft_i2c_send_byte((addr<<1) | 0x00); //send addr
+    while(soft_i2c_wait_ack());
+    soft_i2c_send_byte(position);
+    while(soft_i2c_wait_ack()); //send position
+    soft_i2c_send_byte(byte);
+    while(soft_i2c_wait_ack()); 
+    
+    soft_i2c_stop();
+    printf("2\r\n");
+}
+
+void soft_i2c_write_bytes(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t const *array,uint8_t num)
 {
     uint8_t i=0;
     soft_i2c_start();

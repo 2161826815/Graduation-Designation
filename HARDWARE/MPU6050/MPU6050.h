@@ -4,6 +4,11 @@
 #include "stm32f10x.h"
 #include "i2c.h"
 #include "delay.h"
+#include "USART.h"
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h"
+
+#define USE_Soft_I2C 0
 
 #define MPU6050_SELF_TESTX_REG		        0X0D	//自检寄存器X
 #define MPU6050_SELF_TESTY_REG		        0X0E	//自检寄存器Y
@@ -66,14 +71,14 @@
 #define MPU6050_FIFO_RW_REG				    0X74	//FIFO读写寄存器
 #define MPU6050_DEVICE_ID_REG			    0X75	//器件ID寄存器
 
-#define MPU6050_ADDR					0X68    //MPU6050地址
+#define MPU6050_ADDR					    0X68    //MPU6050地址
 
-void MPU6050_Init(void);
+uint8_t MPU6050_Init(void);
 void MPU6050_Set_LPF(uint16_t lpf);
 void MPU6050_Set_Rate(uint32_t rate);
 void MPU6050_Get_Accelerometer(short *accel_x,short *accel_y,short *accel_z);
 void MPU6050_Get_Gyroscope(short *gyro_x,short *gyro_y,short *gyro_z);
-uint8_t MPU6050_Write_Bytes(uint8_t slave_addr,uint8_t reg_addr,uint8_t num,uint8_t* data);
+uint8_t MPU6050_Write_Bytes(uint8_t slave_addr,uint8_t reg_addr,uint8_t num,uint8_t const* data);
 uint8_t MPU6050_Write_One_Byte(uint8_t slave_addr,uint8_t reg_addr,uint8_t num,uint8_t data);
 uint8_t MPU6050_Read_Bytes(uint8_t slave_addr,uint8_t reg_addr,uint8_t num,uint8_t *data);
 #endif

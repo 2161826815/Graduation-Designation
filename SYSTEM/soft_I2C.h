@@ -26,6 +26,7 @@ void soft_i2c_send_byte(uint8_t value);
 void soft_i2c_ack(void);
 void soft_i2c_nack(void);
 uint8_t soft_i2c_wait_ack(void);
-void soft_i2c_read_data(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t state,uint8_t *data,uint8_t num);
-void soft_i2c_write_data(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t *array,uint8_t num);
+void soft_i2c_read_data(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t *data,uint8_t num);
+void soft_i2c_write_byte(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t byte,uint8_t num);
+void soft_i2c_write_bytes(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t const *array,uint8_t num);
 #endif
