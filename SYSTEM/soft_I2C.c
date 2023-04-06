@@ -1,5 +1,5 @@
 #include "soft_I2C.h"
-
+#include "USART.h"
 
 void soft_i2c_config(void)
 {
@@ -8,11 +8,26 @@ void soft_i2c_config(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);
 
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_Out_OD;
-    GPIO_InitStruct.GPIO_Pin = soft_i2c_scl | soft_i2c_sda;
+    GPIO_InitStruct.GPIO_Pin = soft_i2c_scl;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(soft_i2c_port,&GPIO_InitStruct);
 
+    GPIO_InitStruct.GPIO_Pin = soft_i2c_sda;
+    GPIO_Init(soft_i2c_port,&GPIO_InitStruct);
     soft_i2c_stop();
+}
+
+void soft_i2c_io_change(io_mode_t io_mode)
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.GPIO_Pin = soft_i2c_sda;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    if(io_mode == INPUT){
+        GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    }else if(io_mode == OPUPUT){
+        GPIO_InitStruct.GPIO_Mode = GPIO_Mode_Out_OD;
+    }
+    GPIO_Init(soft_i2c_port,&GPIO_InitStruct);
 }
 
 void soft_i2c_start(void)
@@ -22,6 +37,9 @@ void soft_i2c_start(void)
     I2C_Delay();
     SDA_0();
     I2C_Delay();
+    SCL_0();
+    I2C_Delay();
+    
 }
 
 void soft_i2c_stop(void)
@@ -30,6 +48,48 @@ void soft_i2c_stop(void)
     SCL_1();
     I2C_Delay();
     SDA_1();
+    I2C_Delay();
+}
+
+void soft_i2c_ack(void)
+{
+    SCL_0();
+    SDA_1();
+    I2C_Delay();
+    SCL_1();
+    I2C_Delay();
+    SCL_0();
+}
+
+void soft_i2c_nack(void)
+{
+    SDA_1();
+    I2C_Delay();
+    SCL_1();
+    I2C_Delay();
+    SCL_0();
+    I2C_Delay();
+}
+
+uint8_t soft_i2c_wait_ack()
+{
+    uint8_t timeout = 0;
+    SDA_1();
+    I2C_Delay();
+    SCL_1();
+    I2C_Delay();
+    soft_i2c_io_change(INPUT);
+    while(SDA_READ()){
+        timeout++;
+        if(timeout == 250){
+            soft_i2c_io_change(OPUPUT);
+            soft_i2c_stop();
+            return 1;
+        }
+    }
+    SCL_0();
+    return 0;
+
 }
 
 uint8_t soft_i2c_read_byte(void)
@@ -39,7 +99,9 @@ uint8_t soft_i2c_read_byte(void)
         value <<= 1;
         SCL_1();
         I2C_Delay();
+        soft_i2c_io_change(INPUT);
         value |= SDA_READ();
+        soft_i2c_io_change(OPUPUT);
         SCL_0();
         I2C_Delay();
     }
@@ -61,47 +123,12 @@ void soft_i2c_send_byte(uint8_t value)
 
         if(i==7){
             SDA_1();
+            I2C_Delay();
         }
-        value <<= 1;
-        I2C_Delay();
+        value = value<<1;
     }
 }
 
-void soft_i2c_ack(void)
-{
-    SDA_1();
-    I2C_Delay();
-    SCL_1();
-    I2C_Delay();
-    SCL_0();
-}
-
-void soft_i2c_nack(void)
-{
-    SDA_0();
-    I2C_Delay();
-    SCL_1();
-    I2C_Delay();
-    SCL_0();
-    I2C_Delay();
-    SDA_1();    //release SDA
-}
-
-uint8_t soft_i2c_wait_ack()
-{
-    uint8_t ret;
-    SDA_1(); //release SDA
-    I2C_Delay();
-    SCL_1();
-    I2C_Delay();
-    if(SDA_READ())
-        ret = 1;
-    else
-        ret = 0;
-    SCL_0();
-    I2C_Delay();
-    return ret;
-}
 
 void soft_i2c_read_data(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t *data,uint8_t num)
 {
@@ -137,7 +164,6 @@ void soft_i2c_write_byte(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t
     while(soft_i2c_wait_ack()); 
     
     soft_i2c_stop();
-    printf("2\r\n");
 }
 
 void soft_i2c_write_bytes(I2C_TypeDef* I2Cx,uint8_t addr,uint8_t position,uint8_t const *array,uint8_t num)

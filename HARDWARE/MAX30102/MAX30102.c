@@ -1,8 +1,10 @@
 #include "MAX30102.h"
-
+#include "soft_I2C.h"
 uint32_t IR_Buffer[500];
 uint32_t RED_Buffer[500];
 int32_t IR_Buffrt_Length;
+
+#define USE_Soft_I2C 1
 
 void Max30102_Reset(void)
 {
@@ -13,7 +15,6 @@ void Max30102_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
     EXTI_InitTypeDef EXTI_InitStruct;
-    NVIC_InitTypeDef NVIC_InitStruct;
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
     GPIO_InitStruct.GPIO_Pin = MAX30102_IT_Pin;
@@ -38,8 +39,11 @@ void Max30102_Init(void)
     EXTI_Init(&EXTI_InitStruct);
     
     
-
+#if USE_Soft_I2C
+    soft_i2c_config();
+#else
     I2C_Config();
+#endif
     Max30102_Reset();
 
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_1_rigister,0xC0,1);  //Enable A_FULL and PPG_RDY

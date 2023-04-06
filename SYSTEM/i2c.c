@@ -1,4 +1,7 @@
 #include "i2c.h"
+#include "soft_I2C.h"
+
+#define USE_Soft_I2C 0
 
 void I2C_Config(void)
 {
@@ -29,14 +32,16 @@ void I2C_Config(void)
 
 void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t data,uint8_t num)
 {
+#if USE_Soft_I2C
+    soft_i2c_write_byte(I2Cx,slave_addr,reg_addr,data,num);
+#else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
     //EV5
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
-    
     I2C_Send7bitAddress(I2Cx,slave_addr,I2C_Direction_Transmitter); //send slave addr
     //EV6
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
-    printf("1\r\n");
+    printf("2\r\n");
     I2C_SendData(I2Cx,reg_addr); //send register addr
     //EV8
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
@@ -46,10 +51,14 @@ void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uin
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
 
     I2C_GenerateSTOP(I2Cx,ENABLE);
+#endif
 }
 
 void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t const*data,uint8_t num)
 {
+#if USE_Soft_I2C
+    soft_i2c_write_bytes(I2Cx,slave_addr,reg_addr,data,num);
+#else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
     //EV5
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
@@ -71,10 +80,14 @@ void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8
     }
 
     I2C_GenerateSTOP(I2Cx,ENABLE);
+#endif
 }
 
 void I2C_read_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t *data,uint8_t num)
 {
+#if USE_Soft_I2C
+    soft_i2c_read_data(I2Cx,slave_addr,reg_addr,data,num);
+#else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
     //EV5
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
@@ -111,6 +124,7 @@ void I2C_read_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_
     }
     
     I2C_AcknowledgeConfig(I2Cx,ENABLE);
+#endif
 }
 
 void I2C_Wait(I2C_TypeDef* I2Cx,uint8_t slave_addr)
