@@ -4,7 +4,7 @@ uint32_t IR_Buffer[500];
 uint32_t RED_Buffer[500];
 int32_t IR_Buffrt_Length;
 
-#define USE_Soft_I2C 1
+#define USE_Soft_I2C 0
 
 void Max30102_Reset(void)
 {

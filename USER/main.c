@@ -45,6 +45,7 @@ int main(void)
 #endif
 #if MAX30102_ON_OFF
 		Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
+    printf("Max30102 Init Success\r\n");
 #endif
 
 #if ESP_ON_OFF
