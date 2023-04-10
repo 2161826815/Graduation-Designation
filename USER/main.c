@@ -12,7 +12,7 @@
 #include "USART.h"
 #include "MPU6050.h"
 #include "main.h"
-
+#include "test.h"
 
 #if ESP_ON_OFF
 uint8_t ESP_Data[255];
@@ -135,8 +135,14 @@ int main(void)
 			printf("yaw:  %f\r\n",(float)yaw);
     }
 #endif 
-
-  //GUI_ShowNum(24,8,5,10,8,1);
+#if OLED_ON_OFF  
+		TEST_English();          //英文显示测试
+		OLED_Clear(0); 
+		TEST_Number_Character(); //数字和符号显示测试
+		OLED_Clear(0); 
+		TEST_Chinese();          //中文显示测试
+		OLED_Clear(0);  
+#endif
 /*                   
     if(temperature > 40){
       LED_ON(1);

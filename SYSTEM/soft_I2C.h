@@ -13,7 +13,7 @@ typedef enum {
     OPUPUT
 }io_mode_t;
 
-#define I2C_Delay()         delay_us(3)
+#define I2C_Delay()         delay_us(1)
 
 #define SDA_1()             GPIO_SetBits(soft_i2c_port,soft_i2c_sda)
 #define SDA_0()             GPIO_ResetBits(soft_i2c_port,soft_i2c_sda)

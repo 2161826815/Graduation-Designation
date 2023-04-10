@@ -71,7 +71,7 @@
 #define MPU6050_FIFO_RW_REG				    0X74	//FIFO读写寄存器
 #define MPU6050_DEVICE_ID_REG			    0X75	//器件ID寄存器
 
-#define MPU6050_ADDR					    0X68    //MPU6050地址
+#define MPU6050_ADDR					    0X68
 
 uint8_t MPU6050_Init(void);
 void MPU6050_Set_LPF(uint16_t lpf);
