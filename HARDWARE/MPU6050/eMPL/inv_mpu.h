@@ -22,7 +22,7 @@
 #define _INV_MPU_H_
 #include "stm32f10x.h"
 
-//¶¨ÒåÊä³öËÙ¶È
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 #define DEFAULT_MPU_HZ  (100)		//100Hz
 
 #define INV_X_GYRO      (0x40)
@@ -32,7 +32,7 @@
 #define INV_XYZ_ACCEL   (0x08)
 #define INV_XYZ_COMPASS (0x01)
 
-//ÒÆÖ²¹Ù·½MSP430 DMPÇý¶¯¹ýÀ´
+//ï¿½ï¿½Ö²ï¿½Ù·ï¿½MSP430 DMPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 struct int_param_s {
 //#if defined EMPL_TARGET_MSP430 || defined MOTION_DRIVER_TARGET_MSP430
     void (*cb)(void);
@@ -127,13 +127,13 @@ int mpu_reg_dump(void);
 int mpu_read_reg(unsigned char reg, unsigned char *data);
 int mpu_run_self_test(long *gyro, long *accel);
 int mpu_register_tap_cb(void (*func)(unsigned char, unsigned char));
-//×ÔÐÐÌí¼ÓµÄÒ»Ð©º¯Êý
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½Ò»Ð©ï¿½ï¿½ï¿½ï¿½
 void mget_ms(unsigned long *time);
 unsigned short inv_row_2_scale(const signed char *row);
 unsigned short inv_orientation_matrix_to_scalar(const signed char *mtx);
-u8 run_self_test(void);
-u8 mpu_dmp_init(void);
-u8 mpu_dmp_get_data(float *pitch,float *roll,float *yaw);
+uint8_t run_self_test(void);
+uint8_t mpu_dmp_init(void);
+uint8_t mpu_dmp_get_data(float *pitch,float *roll,float *yaw);
 
 #endif  /* #ifndef _INV_MPU_H_ */
 

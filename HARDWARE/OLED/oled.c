@@ -3,7 +3,7 @@
 #include "string.h" 	 
 #include "delay.h"
 #include "oled_iic.h"
-#include "soft_I2C.h"
+#include "soft_iic.h"
 #include "i2c.h"
 
 static unsigned char OLED_buffer[1024] = 
@@ -125,7 +125,7 @@ void OLED_Set_Pixel(unsigned char x, unsigned char y,unsigned char color)
  
 void OLED_Display(void)
 {
-	u8 i,n;		    
+	uint8_t i,n;		    
 	for(i=0;i<PAGE_SIZE;i++)  
 	{  
 		OLED_WR_Byte (YLevel+i,OLED_CMD);    

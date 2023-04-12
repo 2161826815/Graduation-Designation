@@ -1,5 +1,5 @@
 #include "MAX30102.h"
-#include "soft_I2C.h"
+#include "soft_iic.h"
 uint32_t IR_Buffer[500];
 uint32_t RED_Buffer[500];
 int32_t IR_Buffrt_Length;

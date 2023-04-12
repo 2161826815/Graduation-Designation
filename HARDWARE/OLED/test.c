@@ -1,36 +1,36 @@
 //////////////////////////////////////////////////////////////////////////////////	 
-//±¾³ÌÐòÖ»¹©Ñ§Ï°Ê¹ÓÃ£¬Î´¾­×÷ÕßÐí¿É£¬²»µÃÓÃÓÚÆäËüÈÎºÎÓÃÍ¾
-//²âÊÔÓ²¼þ£ºµ¥Æ¬»úSTM32F103RCT6,ÕýµãÔ­×ÓMiniSTM32¿ª·¢°å,Ö÷Æµ72MHZ£¬¾§Õñ12MHZ
-//QDtech-OLEDÒº¾§Çý¶¯ for STM32
-//xiao·ë@ShenZhen QDtech co.,LTD
-//¹«Ë¾ÍøÕ¾:www.qdtft.com
-//ÌÔ±¦ÍøÕ¾£ºhttp://qdtech.taobao.com
-//wiki¼¼ÊõÍøÕ¾£ºhttp://www.lcdwiki.com
-//ÎÒË¾Ìá¹©¼¼ÊõÖ§³Ö£¬ÈÎºÎ¼¼ÊõÎÊÌâ»¶Ó­ËæÊ±½»Á÷Ñ§Ï°
-//¹Ì»°(´«Õæ) :+86 0755-23594567 
-//ÊÖ»ú:15989313508£¨·ë¹¤£© 
-//ÓÊÏä:lcdwiki01@gmail.com    support@lcdwiki.com    goodtft@163.com
-//¼¼ÊõÖ§³ÖQQ:3002773612  3002778157
-//¼¼Êõ½»Á÷QQÈº:324828016
-//´´½¨ÈÕÆÚ:2018/9/13
-//°æ±¾£ºV1.0
-//°æÈ¨ËùÓÐ£¬µÁ°æ±Ø¾¿¡£
-//Copyright(C) ÉîÛÚÊÐÈ«¶¯µç×Ó¼¼ÊõÓÐÏÞ¹«Ë¾ 2018-2028
+//æœ¬ç¨‹åºåªä¾›å­¦ä¹ ä½¿ç”¨ï¼Œæœªç»ä½œè€…è®¸å¯ï¼Œä¸å¾—ç”¨äºŽå…¶å®ƒä»»ä½•ç”¨é€”
+//æµ‹è¯•ç¡¬ä»¶ï¼šå•ç‰‡æœºSTM32F103RCT6,æ­£ç‚¹åŽŸå­MiniSTM32å¼€å‘æ¿,ä¸»é¢‘72MHZï¼Œæ™¶æŒ¯12MHZ
+//QDtech-OLEDæ¶²æ™¶é©±åŠ¨ for STM32
+//xiaoå†¯@ShenZhen QDtech co.,LTD
+//å…¬å¸ç½‘ç«™:www.qdtft.com
+//æ·˜å®ç½‘ç«™ï¼šhttp://qdtech.taobao.com
+//wikiæŠ€æœ¯ç½‘ç«™ï¼šhttp://www.lcdwiki.com
+//æˆ‘å¸æä¾›æŠ€æœ¯æ”¯æŒï¼Œä»»ä½•æŠ€æœ¯é—®é¢˜æ¬¢è¿Žéšæ—¶äº¤æµå­¦ä¹ 
+//å›ºè¯(ä¼ çœŸ) :+86 0755-23594567 
+//æ‰‹æœº:15989313508ï¼ˆå†¯å·¥ï¼‰ 
+//é‚®ç®±:lcdwiki01@gmail.com    support@lcdwiki.com    goodtft@163.com
+//æŠ€æœ¯æ”¯æŒQQ:3002773612  3002778157
+//æŠ€æœ¯äº¤æµQQç¾¤:324828016
+//åˆ›å»ºæ—¥æœŸ:2018/9/13
+//ç‰ˆæœ¬ï¼šV1.0
+//ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶ã€‚
+//Copyright(C) æ·±åœ³å¸‚å…¨åŠ¨ç”µå­æŠ€æœ¯æœ‰é™å…¬å¸ 2018-2028
 //All rights reserved
 /****************************************************************************************************
-//=========================================µçÔ´½ÓÏß================================================//
-// OLEDÄ£¿é               STM32µ¥Æ¬»ú
-//   VCC         ½Ó       DC 5V/3.3V      //OLEDÆÁµçÔ´Õý
-//   GND         ½Ó          GND          //OLEDÆÁµçÔ´µØ
-//=======================================Òº¾§ÆÁÊý¾ÝÏß½ÓÏß==========================================//
-//±¾Ä£¿éÄ¬ÈÏÊý¾Ý×ÜÏßÀàÐÍÎªIIC
-// OLEDÄ£¿é               STM32µ¥Æ¬»ú
-//   SDA         ½Ó          PB3         //OLEDÆÁIICÊý¾ÝÐÅºÅ
-//=======================================Òº¾§ÆÁ¿ØÖÆÏß½ÓÏß==========================================//
-// OLEDÄ£¿é               STM32µ¥Æ¬»ú
-//   SCL         ½Ó          PB4         //OLEDÆÁIICÊ±ÖÓÐÅºÅ
-//=========================================´¥ÃþÆÁ½ÓÏß=========================================//
-//±¾Ä£¿é²»´ø´¥Ãþ¹¦ÄÜ£¬ËùÒÔ²»ÐèÒª´¥ÃþÆÁ½ÓÏß
+//=========================================ç”µæºæŽ¥çº¿================================================//
+// OLEDæ¨¡å—               STM32å•ç‰‡æœº
+//   VCC         æŽ¥       DC 5V/3.3V      //OLEDå±ç”µæºæ­£
+//   GND         æŽ¥          GND          //OLEDå±ç”µæºåœ°
+//=======================================æ¶²æ™¶å±æ•°æ®çº¿æŽ¥çº¿==========================================//
+//æœ¬æ¨¡å—é»˜è®¤æ•°æ®æ€»çº¿ç±»åž‹ä¸ºIIC
+// OLEDæ¨¡å—               STM32å•ç‰‡æœº
+//   SDA         æŽ¥          PB15         //OLEDå±IICæ•°æ®ä¿¡å·
+//=======================================æ¶²æ™¶å±æŽ§åˆ¶çº¿æŽ¥çº¿==========================================//
+// OLEDæ¨¡å—               STM32å•ç‰‡æœº
+//   SCL         æŽ¥          PB13         //OLEDå±IICæ—¶é’Ÿä¿¡å·
+//=========================================è§¦æ‘¸å±æŽ¥çº¿=========================================//
+//æœ¬æ¨¡å—ä¸å¸¦è§¦æ‘¸åŠŸèƒ½ï¼Œæ‰€ä»¥ä¸éœ€è¦è§¦æ‘¸å±æŽ¥çº¿
 ****************************************************************************************************/	
 /***************************************************************************************************
   * @attention
@@ -195,15 +195,15 @@ void TEST_Number_Character(void)
 void TEST_Chinese(void)
 {	
 	GUI_ShowString(45,0,"16x16",8,1);
-	GUI_ShowCHinese(16,20,16,"È«¶¯µç×Ó¼¼Êõ",1);
+	GUI_ShowCHinese(16,20,16,"å…¨åŠ¨ç”µå­æŠ€æœ¯",1);
 	delay_ms(1000);
 	OLED_Clear(0);
 	GUI_ShowString(45,0,"24x24",8,1);
-	GUI_ShowCHinese(16,20,24,"È«¶¯µç×Ó",1);
+	GUI_ShowCHinese(16,20,24,"å…¨åŠ¨ç”µå­",1);
 	delay_ms(1000);
 	OLED_Clear(0);
 	GUI_ShowString(45,0,"32x32",8,1);
-	GUI_ShowCHinese(0,20,32,"È«¶¯µç×Ó",1);	
+	GUI_ShowCHinese(0,20,32,"å…¨åŠ¨ç”µå­",1);	
   delay_ms(1000);
 	OLED_Clear(0);
 }
@@ -235,7 +235,7 @@ void TEST_BMP(void)
 void TEST_Menu1(void)
 { 
 	GUI_Fill(0,0,WIDTH-1,15,1);
-	GUI_ShowCHinese(32,0,16,"ÏµÍ³ÉèÖÃ",0);
+	GUI_ShowCHinese(32,0,16,"ç³»ç»Ÿè®¾ç½®",0);
 	GUI_DrawCircle(10, 24, 1,6);
 	GUI_DrawCircle(10, 24, 1,3);
 	GUI_DrawCircle(10, 40, 1,6);
@@ -243,11 +243,11 @@ void TEST_Menu1(void)
 	GUI_DrawCircle(10, 56, 1,6);
 	GUI_DrawCircle(10, 56, 1,3);
 	GUI_ShowString(20,16,"A.",16,1);
-	GUI_ShowCHinese(36,16,16,"ÒôÁ¿ÉèÖÃ",1);
+	GUI_ShowCHinese(36,16,16,"éŸ³é‡è®¾ç½®",1);
 	GUI_ShowString(20,32,"B.",16,1);
-	GUI_ShowCHinese(36,32,16,"ÑÕÉ«ÉèÖÃ",1);
+	GUI_ShowCHinese(36,32,16,"é¢œè‰²è®¾ç½®",1);
 	GUI_ShowString(20,48,"C.",16,1);
-	GUI_ShowCHinese(36,48,16,"ÍøÂçÉèÖÃ",1);
+	GUI_ShowCHinese(36,48,16,"ç½‘ç»œè®¾ç½®",1);
 	GUI_DrawRectangle(0, 0,WIDTH-1,HEIGHT-1,1);
 	GUI_DrawLine(WIDTH-1-10, 15, WIDTH-1-10, HEIGHT-1,1);
 	GUI_FillTriangel(WIDTH-1-9,20,WIDTH-1-5,16,WIDTH-1-1,20,1);
@@ -255,31 +255,31 @@ void TEST_Menu1(void)
 	GUI_FillCircle(10, 24, 1,3);
 	GUI_Fill(20,16,99,31,1);
 	GUI_ShowString(20,16,"A.",16,0);
-	GUI_ShowCHinese(36,16,16,"ÒôÁ¿ÉèÖÃ",0);
+	GUI_ShowCHinese(36,16,16,"éŸ³é‡è®¾ç½®",0);
 	GUI_Fill(WIDTH-1-9,23,WIDTH-1-1,28,1);
 	delay_ms(1500);
 	GUI_FillCircle(10, 24, 0,3);
 	GUI_DrawCircle(10, 24, 1,3);
 	GUI_Fill(20,16,99,31,0);
 	GUI_ShowString(20,16,"A.",16,1);
-	GUI_ShowCHinese(36,16,16,"ÒôÁ¿ÉèÖÃ",1);
+	GUI_ShowCHinese(36,16,16,"éŸ³é‡è®¾ç½®",1);
 	GUI_Fill(WIDTH-1-9,23,WIDTH-1-1,28,0);
 	GUI_FillCircle(10, 40, 1,3);
 	GUI_Fill(20,32,99,47,1);
 	GUI_ShowString(20,32,"B.",16,0);
-	GUI_ShowCHinese(36,32,16,"ÑÕÉ«ÉèÖÃ",0);
+	GUI_ShowCHinese(36,32,16,"é¢œè‰²è®¾ç½®",0);
 	GUI_Fill(WIDTH-1-9,37,WIDTH-1-1,42,1);
 	delay_ms(1500);
 	GUI_FillCircle(10, 40, 0,3);
 	GUI_DrawCircle(10, 40, 1,3);
 	GUI_Fill(20,32,99,47,0);
 	GUI_ShowString(20,32,"B.",16,1);
-	GUI_ShowCHinese(36,32,16,"ÑÕÉ«ÉèÖÃ",1);
+	GUI_ShowCHinese(36,32,16,"é¢œè‰²è®¾ç½®",1);
 	GUI_Fill(WIDTH-1-9,37,WIDTH-1-1,42,0);
 	GUI_FillCircle(10, 56, 1,3);
 	GUI_Fill(20,48,99,63,1);
 	GUI_ShowString(20,48,"C.",16,0);
-	GUI_ShowCHinese(36,48,16,"ÍøÂçÉèÖÃ",0);
+	GUI_ShowCHinese(36,48,16,"ç½‘ç»œè®¾ç½®",0);
 	GUI_Fill(WIDTH-1-9,HEIGHT-1-13,WIDTH-1-1,HEIGHT-1-8,1);
 	delay_ms(1500);
 }

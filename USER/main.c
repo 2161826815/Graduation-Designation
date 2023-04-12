@@ -72,7 +72,7 @@ int main(void)
 #endif
 
 #if MPU6050_ON_OFF
-	ret = MPU6050_Init();                                                 //MPU6050 角速度，加速度传感器初始化
+	ret = MPU_Init();                                                 //MPU6050 角速度，加速度传感器初始化
   if(!ret){
     printf("MPU6050 Init Success\r\n");
   }else{
@@ -128,8 +128,8 @@ int main(void)
     float roll;
     float yaw;
     if(mpu_dmp_get_data(&pitch,&roll,&yaw) == 0){
-      MPU6050_Get_Accelerometer(&accel_x,&accel_y,&accel_z);
-      MPU6050_Get_Gyroscope(&gyro_x,&gyro_y,&gyro_z);
+      MPU_Get_Accelerometer(&accel_x,&accel_y,&accel_z);
+      MPU_Get_Gyroscope(&gyro_x,&gyro_y,&gyro_z);
       printf("Pitch:  %f\r\n",(float)pitch);
 			printf("Roll:  %f\r\n",(float)roll);
 			printf("yaw:  %f\r\n",(float)yaw);
@@ -156,29 +156,29 @@ int main(void)
     ESP8266_Pub_Data(SPO2_Value,Type_SPO2);                       //发布血氧浓度数据到云端
     ESP8266_Pub_Data(HR_Value,Type_HR);                           //发布心率数据到云端
 
-    GUI_ShowString(0,0,(u8*)"temperature:",8,1);                       //OLED显示温度
+    GUI_ShowString(0,0,(uint8_t*)"temperature:",8,1);                       //OLED显示温度
     GUI_ShowNum(96,0,temperature,10,8,1);
       
-    GUI_ShowString(0,8,(u8*)"HR:",8,1);                                //OLED显示心率
+    GUI_ShowString(0,8,(uint8_t*)"HR:",8,1);                                //OLED显示心率
     GUI_ShowNum(24,8,HR_Value,10,8,1);
 
-    GUI_ShowString(0,16,(u8*)"SPO2:",8,1);                             //OLED显示血氧浓度
+    GUI_ShowString(0,16,(uint8_t*)"SPO2:",8,1);                             //OLED显示血氧浓度
     GUI_ShowNum(40,16,HR_Value,10,8,1);
 
     delay_ms(2000);  
     OLED_Clear(0);                                                //延时两秒刷新OLED
     
-    GUI_ShowString(0,8,(u8*)"accel_x:",8,1);                           //OLED显示血氧浓度
+    GUI_ShowString(0,8,(uint8_t*)"accel_x:",8,1);                           //OLED显示血氧浓度
     GUI_ShowNum(64,8,accel_x,10,8,1);
-    GUI_ShowString(0,16,(u8*)"accel_y:",8,1);                          //OLED显示血氧浓度
+    GUI_ShowString(0,16,(uint8_t*)"accel_y:",8,1);                          //OLED显示血氧浓度
     GUI_ShowNum(64,16,accel_y,10,8,1);
-    GUI_ShowString(0,24,(u8*)"accel_z:",8,1);                          //OLED显示血氧浓度
+    GUI_ShowString(0,24,(uint8_t*)"accel_z:",8,1);                          //OLED显示血氧浓度
     GUI_ShowNum(64,24,accel_z,10,8,1);
-    GUI_ShowString(0,32,(u8*)"gyro_x:",8,1);                           //OLED显示血氧浓度
+    GUI_ShowString(0,32,(uint8_t*)"gyro_x:",8,1);                           //OLED显示血氧浓度
     GUI_ShowNum(64,32,gyro_x,10,8,1);
-    GUI_ShowString(0,40,(u8*)"gyro_y:",8,1);                           //OLED显示血氧浓度
+    GUI_ShowString(0,40,(uint8_t*)"gyro_y:",8,1);                           //OLED显示血氧浓度
     GUI_ShowNum(64,40,gyro_y,10,8,1);
-    GUI_ShowString(0,48,(u8*)"gyro_z:",8,1);                           //OLED显示血氧浓度
+    GUI_ShowString(0,48,(uint8_t*)"gyro_z:",8,1);                           //OLED显示血氧浓度
     GUI_ShowNum(64,48,gyro_z,10,8,1);
 
     delay_ms(2000);  

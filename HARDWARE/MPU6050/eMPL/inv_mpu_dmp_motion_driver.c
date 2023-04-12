@@ -7,11 +7,11 @@
 #include "inv_mpu_dmp_motion_driver.h"
 #include "dmpKey.h"
 #include "dmpmap.h"
-#include "USART.h"
+#include "usart.h"
 #include "delay.h"
 
-//ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½MSP430
-#define  MOTION_DRIVER_TARGET_STM32F1
+//¶¨ÒåÄ¿±ê°å²ÉÓÃMSP430
+#define  MOTION_DRIVER_TARGET_MSP430
 
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,
@@ -21,7 +21,7 @@
  * delay_ms(unsigned long num_ms)
  * get_ms(unsigned long *count)
  */
-#if defined MOTION_DRIVER_TARGET_STM32F1
+#if defined MOTION_DRIVER_TARGET_MSP430
 //#include "msp430.h"
 //#include "msp430_clock.h"
 #define delay_ms    delay_ms

@@ -86,7 +86,7 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
 uint8_t ESP8266_Init()
 {
     uint8_t ret;
-    uint8_t timeout = 10;
+
     ESP8266_GPIO_Config();
 
     ret = ESP8266_Send_Cmd("AT\r\n","OK");      //测试是否正常工作

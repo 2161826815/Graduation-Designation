@@ -21,8 +21,8 @@
 void IIC_Start(void);
 void IIC_Stop(void);
 void IIC_Wait_Ack(void);
-void Write_IIC_Byte(u8 IIC_Byte);
-void Write_IIC_Command(u8 IIC_Command);
-void Write_IIC_Data(u8 IIC_Data);
+void Write_IIC_Byte(uint8_t IIC_Byte);
+void Write_IIC_Command(uint8_t IIC_Command);
+void Write_IIC_Data(uint8_t IIC_Data);
 
 #endif
