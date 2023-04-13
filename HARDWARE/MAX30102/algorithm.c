@@ -240,7 +240,7 @@ void maxim_heart_rate_and_oxygen_saturation(uint32_t *pun_ir_buffer,  int32_t n_
             n_denom= ( n_x_ac *n_y_dc_max)>>7;
             if (n_denom>0  && n_i_ratio_count <5 &&  n_nume != 0)
             {   
-                an_ratio[n_i_ratio_count]= (n_nume*20)/n_denom ; //formular is ( n_y_ac *n_x_dc_max) / ( n_x_ac *n_y_dc_max) ;  ///*************************n_nume原来是*100************************//
+                an_ratio[n_i_ratio_count]= (n_nume*20)/n_denom ; //formular is ( n_y_ac *n_x_dc_max) / ( n_x_ac *n_y_dc_max) ;  ///*************************n_nume原锟斤拷锟斤拷*100************************//
                 n_i_ratio_count++;
             }
         }

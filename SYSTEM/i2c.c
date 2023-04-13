@@ -1,4 +1,7 @@
 #include "i2c.h"
+#include "soft_iic.h"
+
+#define USE_Soft_I2C 0
 
 void I2C_Config(void)
 {
@@ -29,78 +32,101 @@ void I2C_Config(void)
 
 void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t data,uint8_t num)
 {
+#if USE_Soft_I2C
+    Soft_IIC_Write_One_Byte(slave_addr,reg_addr,data);
+#else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_SB)); //EV5
-
+    //EV5
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
+    //printf("Start success\r\n");
     I2C_Send7bitAddress(I2Cx,slave_addr,I2C_Direction_Transmitter); //send slave addr
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_ADDR)); //EV6
-
+    //EV6
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+    //printf("send slave addr success\r\n");
     I2C_SendData(I2Cx,reg_addr); //send register addr
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_BTF)); //EV8 
+    //EV8
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
 
     I2C_SendData(I2Cx,data); //send register addr
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_BTF)); //EV8
+    //EV8
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
 
     I2C_GenerateSTOP(I2Cx,ENABLE);
+
+#endif
 }
 
-void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t *data,uint8_t num)
+void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,const uint8_t *data,uint8_t num)
 {
+#if USE_Soft_I2C
+    Soft_IIC_Write_Bytes(I2Cx,slave_addr,reg_addr,num,data);
+#else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_SB)); //EV5
+    //EV5
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
 
     I2C_Send7bitAddress(I2Cx,slave_addr,I2C_Direction_Transmitter); //send slave addr
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_ADDR)); //EV6
+    //EV6
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
 
     I2C_SendData(I2Cx,reg_addr); //send register addr
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_BTF)); //EV8 
+    //EV8 
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
 
     while(num){
         I2C_SendData(I2Cx,*data); //send register addr
-        while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_BTF)); //EV8
+        //EV8
+        while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
         num--;
         data++;
     }
 
     I2C_GenerateSTOP(I2Cx,ENABLE);
+#endif
 }
 
 void I2C_read_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t *data,uint8_t num)
 {
+#if USE_Soft_I2C
+    Soft_IIC_Read_Bytes(slave_addr,reg_addr,num,data);
+#else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_SB)); //EV5
+    //EV5
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
 
     I2C_Send7bitAddress(I2Cx,slave_addr,I2C_Direction_Transmitter); //send addr
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_ADDR)); //EV6
+    //EV6
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
 
     I2C_SendData(I2Cx,reg_addr); //send send register addr
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_TXE)); //EV8
-
+    //EV8
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
 
 
 
     I2C_GenerateSTART(I2Cx,ENABLE);  //Second Start Signal
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_SB)); //EV5
+    //EV5
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
 
     I2C_Send7bitAddress(I2Cx,slave_addr,I2C_Direction_Receiver); //Second send slave addr
-    while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_ADDR)); //EV6
+    //EV6
+    while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED));
 
-    while(num){
+    while(num--){
 
-        if(num==1){
+        if(num==0){
             I2C_AcknowledgeConfig(I2Cx,DISABLE);//the last data
         }
 
-        while(!I2C_GetFlagStatus(I2Cx,I2C_FLAG_RXNE)); //EV7
+        //EV7
+        while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_RECEIVED));
         *data = I2C_ReceiveData(I2Cx);
 
         data++;
-        num--;
     }
     
-
-    I2C_GenerateSTOP(I2Cx,ENABLE);
     I2C_AcknowledgeConfig(I2Cx,ENABLE);
+#endif
 }
 
 void I2C_Wait(I2C_TypeDef* I2Cx,uint8_t slave_addr)

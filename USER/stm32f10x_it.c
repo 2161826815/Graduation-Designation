@@ -30,6 +30,7 @@
 #include "beep.h"
 #include "ESP8266.h"
 #include "oled.h"
+#include "main.h"
 void NMI_Handler(void)
 {
 }
@@ -74,61 +75,20 @@ void SVC_Handler(void)
 void DebugMon_Handler(void)
 {
 }
- 
 void PendSV_Handler(void)
 {
 }
- 
-void SysTick_Handler(void)
-{
-}
-
 void USART1_IRQHandler(void)         //Problem 1
 {
   uint8_t temp;
   if(USART_GetFlagStatus(Debug_Usart,USART_FLAG_RXNE) != RESET){
-    //USART_ClearITPendingBit(Debug_Usart,USART_IT_RXNE);
     temp = USART_ReceiveData(Debug_Usart);
     //USART_SendData(Debug_Usart,temp);
-    printf("h\r\n");
-    USART_Send_One_Byte(ESP8266_USARTX,temp);//串口调试ESP
+    USART_SendData(ESP8266_USARTX,temp);//串口调试ESP
     USART_ClearFlag(Debug_Usart, USART_FLAG_RXNE);
   }
 }
 
-void USART2_IRQHandler(void)     //ESP8266串口DMA空闲中断    
-{
-  extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
-  extern uint8_t RCV_CNT;
-#ifdef RXNE
-  uint8_t temp;
-  if(USART_GetFlagStatus(ESP8266_USARTX,USART_IT_RXNE) != RESET){
-    temp = USART_ReceiveData(ESP8266_USARTX);
-    DMA_RCV_Buffer[RCV_CNT++] = temp;
-    USART_SendData(Debug_Usart,temp);
-    if(temp == '\0'){
-      RCV_CNT = 0;
-      //printf("rcv:%s",DMA_RCV_Buffer);
-    }
-    USART_ClearFlag(ESP8266_USARTX,USART_FLAG_RXNE);
-  }
-#endif
-#ifdef IDLE
-  if(USART_GetFlagStatus(ESP8266_USARTX,USART_FLAG_IDLE) == SET){
-    RCV_CNT = USART1->SR;
-    RCV_CNT = USART1->DR; //清USART_IT_IDLE标志
-    DMA_Cmd(ESP8266_RX_DMA_CHANNEL,DISABLE);
-    RCV_CNT = DMA_SIZE-DMA_GetCurrDataCounter(ESP8266_RX_DMA_CHANNEL);
-    //printf("cnt=%d\r\n",RCV_CNT);
-    DMA_SetCurrDataCounter(ESP8266_RX_DMA_CHANNEL,DMA_SIZE);//重新设置当前DMA容量
-
-
-    DMA_Cmd(ESP8266_RX_DMA_CHANNEL,ENABLE);
-    DMA_Reuse(ESP8266_RX_DMA_CHANNEL);
-    USART_ClearFlag(ESP8266_USARTX,USART_IT_IDLE);
-  }
-#endif
-}
 
 void EXTI9_5_IRQHandler(void)
 {
@@ -137,7 +97,9 @@ void EXTI9_5_IRQHandler(void)
 		LED_Toggle(1);
     LED_Toggle(3);
     
-    ESP8266_Pub_Data(180,Type_HR);
+    //ESP8266_Pub_Data(180,Type_SPO2);
+    
+    //ESP8266_Pub_Data(37.7,Type_Temperature);
 
     EXTI_ClearITPendingBit(EXTI_Line8);
   }
@@ -146,10 +108,18 @@ void EXTI9_5_IRQHandler(void)
   if(EXTI_GetITStatus(EXTI_Line9) == SET){
     LED_Toggle(4);
     LED_Toggle(5);
-
+#if BEEP_ON_OFF
+    BEEP_Toggle();
+#endif
+    //ESP8266_Pub_Data(32.2,Type_Temperature);
     EXTI_ClearITPendingBit(EXTI_Line9);
   }
-    
+  //MAX30102
+  if(EXTI_GetITStatus(EXTI_Line5) == SET){
+    printf("Max30102\r\n");
+
+    EXTI_ClearITPendingBit(EXTI_Line5);
+  }
 }
 
 void EXTI15_10_IRQHandler(void)

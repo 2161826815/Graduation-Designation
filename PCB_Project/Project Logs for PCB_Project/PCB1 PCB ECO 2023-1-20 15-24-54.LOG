@@ -1,0 +1,8 @@
+Added Pin To Net: NetName=VCC3V3 Pin=D1-1
+Added Pin To Net: NetName=VCC3V3 Pin=P1-1
+Added Pin To Net: NetName=VCC3V3 Pin=R2-2
+Added Member To Class: ClassName=Sheet1 Member=Component R6 10K,0603
+Added Member To Class: ClassName=Sheet1 Member=Component R9 10K,0603
+Added Member To Class: ClassName=Sheet1 Member=Component U2 STM32F103C8T6
+Added Member To Class: ClassName=Sheet1 Member=Component U3 AMS1117-3.3
+Added Room: Name=Sheet1

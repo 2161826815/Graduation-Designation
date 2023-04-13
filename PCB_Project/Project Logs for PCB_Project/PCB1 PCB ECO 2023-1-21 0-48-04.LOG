@@ -1,0 +1,4 @@
+Change Component Footprint: Designator=U3 Old Footprint= New Footprint=SOT223
+Change Net Color : Old Net Color=RGB(158, 161, 117) New Net Color=Default
+Change Net Color : Old Net Color=RGB(158, 161, 117) New Net Color=Default
+Added Room: Name=Sheet1

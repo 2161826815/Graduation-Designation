@@ -7,7 +7,7 @@ uint8_t ESP_STATE;
 
 uint8_t AT_CIPSNTPCFG[]="AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n";    //设置地区时间连接阿里云
 
-uint8_t AT_WIFI_INFO[]="AT+CWJAP=\"gidle\",\"2161826815\"\r\n";   //连接WIFI
+uint8_t AT_WIFI_INFO[]="AT+CWJAP=\"(G)I-DLE\",\"2161826815\"\r\n";   //连接WIFI
 
 //设置MQTT用户
 uint8_t AT_MQTTUSRCFG[]="AT+MQTTUSERCFG=0,1,\"NULL\",\"ESP8266&i5z42JpfDlV\",\"F153B43A65CC96889F0CEBF96984EE1993682453\",0,0,\"\"\r\n";
@@ -38,29 +38,47 @@ uint8_t ESP8266_Wait(void)
         return 0;
 }
 
-
-static void delay()
-{
-    uint32_t i = 0xfffff;
-    while(i--);
-}
-
+uint8_t DMA_TC_STATUS = 0;
 //发送AT指令，成功返回0，失败返回1
 uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
 {
-    uint16_t timeout = 500;
+//串口接收中断
+#ifdef RXNE
+    uint16_t timeout = 50;
     while(timeout--){
         USART_Send_str(ESP8266_USARTX,cmd);
-        //printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
         if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
             ESP8266_RCV_Clear();
+            return 0;
+        }else{
+
+        }
+        delay_ms(10);
+    }
+#endif
+
+//串口空闲中断
+#ifdef IDLE
+    uint16_t timeout = 5;
+    while(timeout--){
+        USART_Send_str(ESP8266_USARTX,cmd);
+        while(!DMA_TC_STATUS);
+        if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
+            printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
+            
             printf("Recieve OK\r\n");
             return 0;
+        }else{
+            printf("Recieve Fail\r\n");
         }
-        delay();
-          
-        //delay_ms(1000);
+        
+        ESP8266_RCV_Clear();
+        DMA_TC_STATUS = 0;
+        printf("2adasdas\r\n");
+        delay_ms(1000);
     }
+#endif
+
     return 1;
 }
 
@@ -68,28 +86,23 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
 uint8_t ESP8266_Init()
 {
     uint8_t ret;
-    //uint8_t timeout = 10;
+
     ESP8266_GPIO_Config();
-/*
+
     ret = ESP8266_Send_Cmd("AT\r\n","OK");      //测试是否正常工作
     if(ret != 0)
        return 1;
-*/
 
-/*
+
     ret = ESP8266_Send_Cmd("AT+RST\r\n","OK");  //复位
     if(ret != 0)
        return 2;
-*/
-/*
-    ret = ESP8266_Send_Cmd("ATE0\r\n","OK");    //关闭回显
-    if(ret != 0)
-       return 3;
-*/
-/*
+
+
     ret = ESP8266_Send_Cmd("AT+CWMODE=3\r\n","OK");  //Station+AP模式
     if(ret != 0)
        return 4;
+
 
     ret = ESP8266_Send_Cmd(AT_CIPSNTPCFG,"OK");  //设置地区时间连接阿里云
     if(ret != 0)
@@ -110,64 +123,56 @@ uint8_t ESP8266_Init()
     ret = ESP8266_Send_Cmd(AT_MQTTCONN,"OK");  //连接阿里云
     if(ret != 0)
        return 9;
-*/
+
     
     return 0;
 }
 
-void ESP8266_Pub_Data(uint8_t data,int type)
+void ESP8266_Pub_Data(float data,int type)
 {
     switch(type){
     case Type_Temperature:
         sprintf(Pub_Data,"AT+MQTTPUB=0,\
 \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
-\"{\"method\":\"thing.service.property.set\",\
-\"id\":\"1\",\
-\"params\":{\
-\"Temperature\":%f\
-},\
-\"version\":\"1.0\"}\",1,0\r\n",data);
+\"{\\\"method\\\":\\\"thing.service.property.set\\\"\\,\
+\\\"id\\\":\\\"0\\\"\\,\\\"params\\\":{\\\"Temperature\\\":%f}\\,\
+\\\"version\\\":\\\"1.0\\\"}\",\
+1,0\r\n",data);
 
-        //printf("%s",Pub_Data);
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub data Success\r\n");
+            printf("Pub Temperature Success\r\n");
         }else{
-            printf("Pub Data Fail\r\n");
+            printf("Pub Temperature Fail\r\n");
         }
         break;
     case Type_HR:
         sprintf(Pub_Data,"AT+MQTTPUB=0,\
 \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
-\"{\"method\":\"thing.service.property.set\",\
-\"id\":\"456\",\
-\"params\":{\
-\"HeartRate\":%d\
-},\
-\"version\":\"1.0\"}\",1,0\r\n",data);
+\"{\\\"method\\\":\\\"thing.service.property.set\\\"\\,\
+\\\"id\\\":\\\"1\\\"\\,\
+\\\"params\\\":{\\\"HeartRate\\\":%d}\\,\
+\\\"version\\\":\\\"1.0\\\"}\",\
+1,0\r\n",(uint32_t)data);
 
-        printf("%s",Pub_Data);
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub data Success\r\n");
+            printf("Pub HR Success\r\n");
         }else{
-            printf("Pub Data Fail\r\n");
+            printf("Pub HR Fail\r\n");
         }
         break;
        
     case Type_SPO2:
         sprintf(Pub_Data,"AT+MQTTPUB=0,\
 \"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post\",\
-\"{\"method\":\"thing.service.property.set\",\
-\"id\":\"2\",\
-\"params\":{\
-\"SPO2\":%d\
-},\
-\"version\":\"1.0\"}\",1,0\r\n",data);
+\"{\\\"method\\\":\\\"thing.service.property.set\\\"\\,\
+\\\"id\\\":\\\"2\\\"\\,\\\"params\\\":{\\\"SPO2\\\":%d}\\,\
+\\\"version\\\":\\\"1.0\\\"}\",\
+1,0\r\n",(uint32_t)data);
 
-        //printf("%s",Pub_Data);
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub data Success\r\n");
+            printf("Pub SPO2 Success\r\n");
         }else{
-            printf("Pub Data Fail\r\n");
+            printf("Pub SPO2 Fail\r\n");
         }  
         break;
 
@@ -178,14 +183,14 @@ void ESP8266_Pub_Data(uint8_t data,int type)
 }
 
 /*
-AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{\"SPO2\":55}\,\"version\":\"1.0\"}",1,0
+AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"2\"\,\"params\":{\"SPO2\":75}\,\"version\":\"1.0\"}",1,0
 */
 
 /*
-AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{"HeartRate\":66}\,\"version\":\"1.0\"}",1,0
+AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{\"HeartRate\":66}\,\"version\":\"1.0\"}",1,0
 */
 
 /*
-AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"1\"\,\"params\":{"Temperature\":77.7}\,\"version\":\"1.0\"}",1,0
+AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"0\"\,\"params\":{\"Temperature\":78.7}\,\"version\":\"1.0\"}",1,0
 */
 

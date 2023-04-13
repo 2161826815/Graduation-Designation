@@ -41,7 +41,7 @@ void ESP8266_RCV_Clear(void);
 uint8_t ESP8266_Wait(void);
 uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret);
 uint8_t ESP8266_Init(void);
-void ESP8266_Pub_Data(uint8_t data,int type);
+void ESP8266_Pub_Data(float data,int type);
 
 
 #endif  

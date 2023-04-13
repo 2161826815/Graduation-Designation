@@ -5,7 +5,7 @@
 #include "stm32f10x.h"
 #include "i2c.h"
 #include "algorithm.h"
-
+#include "USART.h"
 #define MAX_BRIGHTNESS 255
 
 #define MAX30102_IT_Port                            GPIOB
@@ -40,4 +40,5 @@ void Max30102_Reset(void);
 void Max30102_Init(void);
 void Max30102_Read_FIFO(uint32_t *RED,uint32_t *IR);
 void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *HR_Value);
+void Max30102_Get_First_Sample(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *HR_Value);
 #endif

@@ -1,0 +1,17 @@
+Added Component: Designator=SW2(TSW SMD-6*6*5)
+Added Component: Designator=SW3(TSW SMD-6*6*5)
+Added Component: Designator=SW4(TSW SMD-6*6*5)
+Added Component: Designator=SW5(TSW SMD-6*6*5)
+Added Pin To Net: NetName=PC14 Pin=SW2-1
+Added Pin To Net: NetName=GND Pin=SW2-2
+Added Pin To Net: NetName=PB8 Pin=SW3-1
+Added Pin To Net: NetName=GND Pin=SW3-2
+Added Pin To Net: NetName=PB9 Pin=SW4-1
+Added Pin To Net: NetName=GND Pin=SW4-2
+Added Pin To Net: NetName=PC15 Pin=SW5-1
+Added Pin To Net: NetName=GND Pin=SW5-2
+Added Member To Class: ClassName=Sheet1 Member=Component SW2 SWITCH
+Added Member To Class: ClassName=Sheet1 Member=Component SW3 SWITCH
+Added Member To Class: ClassName=Sheet1 Member=Component SW4 SWITCH
+Added Member To Class: ClassName=Sheet1 Member=Component SW5 SWITCH
+Added Room: Name=Sheet1
