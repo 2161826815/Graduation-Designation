@@ -128,7 +128,6 @@ void DS18B20_Start(void)
     if(!DS18B20_Check()){
 
     }else{
-        printf("RST Fail\r\n");
         return;
     }
 } 

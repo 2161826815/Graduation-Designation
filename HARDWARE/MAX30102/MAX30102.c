@@ -25,8 +25,8 @@ void Max30102_Init(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     NVIC_Struct.NVIC_IRQChannel = EXTI9_5_IRQn;
     NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_Struct.NVIC_IRQChannelSubPriority = 1;
+    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_Struct.NVIC_IRQChannelSubPriority = 3;
     NVIC_Init(&NVIC_Struct);
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO,ENABLE);

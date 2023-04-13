@@ -17,8 +17,8 @@ void tim2_init(uint16_t Period,uint16_t PSC)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     TIM2_NVIC_Struct.NVIC_IRQChannel = TIM2_IRQn;
     TIM2_NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
-    TIM2_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
-    TIM2_NVIC_Struct.NVIC_IRQChannelSubPriority = 0,
+    TIM2_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+    TIM2_NVIC_Struct.NVIC_IRQChannelSubPriority = 2,
     NVIC_Init(&TIM2_NVIC_Struct);
 
     TIM_Cmd(TIM2,ENABLE);
@@ -63,10 +63,10 @@ void tim3_init(uint16_t Period,uint16_t PSC)
 #endif
     TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
 
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     TIM3_NVIC_Struct.NVIC_IRQChannel = TIM3_IRQn;
     TIM3_NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
-    TIM3_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
+    TIM3_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
     TIM3_NVIC_Struct.NVIC_IRQChannelSubPriority = 1,
     NVIC_Init(&TIM3_NVIC_Struct);
     TIM_Cmd(TIM3,ENABLE);
@@ -111,25 +111,27 @@ void tim4_init(uint16_t Period,uint16_t PSC)
 #endif
     TIM_ITConfig(TIM4,TIM_IT_Update,ENABLE);
 
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     TIM4_NVIC_Struct.NVIC_IRQChannel = TIM4_IRQn;
     TIM4_NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
-    TIM4_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
-    TIM4_NVIC_Struct.NVIC_IRQChannelSubPriority = 2,
+    TIM4_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+    TIM4_NVIC_Struct.NVIC_IRQChannelSubPriority = 0,
     NVIC_Init(&TIM4_NVIC_Struct);
     TIM_Cmd(TIM4,ENABLE);
 }
 
 //温度
 #if DS18B20_ON_OFF
-  extern float cur_temperature;                                           //温度值
+  extern volatile uint8_t DS18B20_HIT;                                           //温度值
 #endif
 void TIM2_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM2,TIM_IT_Update) != RESET){
+
 #if DS18B20_ON_OFF
-        cur_temperature = DS18B20_Read_Temp();                           //采集温度
+        DS18B20_HIT = 1;
 #endif
+
         TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
     }
 }
@@ -137,39 +139,28 @@ void TIM2_IRQHandler(void)
 
 //MPU6050
 #if MPU6050_ON_OFF
-  extern float cur_pitch;
-  extern float cur_roll;
-  extern float cur_yaw;
-  extern short accel_x,accel_y,accel_z;
-  extern short gyro_x,gyro_y,gyro_z;  
+  extern volatile uint8_t MPU_HIT;
 #endif
 void TIM3_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM3,TIM_IT_Update) != RESET){
+ 
 #if MPU6050_ON_OFF
-        mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw);
- /*     MPU_Get_Accelerometer(&accel_x,&accel_y,&accel_z);
-        MPU_Get_Gyroscope(&gyro_x,&gyro_y,&gyro_z); */
-        if(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw) == 0){
-            printf("pitch:%f roll:%f yal:%f \r\n",cur_pitch,cur_roll,cur_yaw);
-        }else{
-            printf("get fail\r\n");
-        }
+        MPU_HIT = 1;
 #endif
+
         TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
     }
 }
 
-//Max30102
 #if MAX30102_ON_OFF
-  extern uint32_t RED, IR;                                               //红光和红外光
-  extern int32_t SPO2_Value,HR_Value;                                    //血氧值和心率值
+    extern volatile uint8_t MAX30102_HIT;
 #endif
 void TIM4_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM2,TIM_IT_Update) != RESET){
 #if MAX30102_ON_OFF
-        Max30102_Calculate(&RED,&IR,&SPO2_Value,&HR_Value);
+        MAX30102_HIT = 1;
 #endif
         TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
     }

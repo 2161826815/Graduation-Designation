@@ -13,7 +13,6 @@ uint8_t ESP_Data[255];
   int32_t SPO2_Value,HR_Value;                                    //血氧值和心率值
 #endif
 
-uint8_t OLED_State=0;                                           //中断状态码开关OLED
 
 #if MPU6050_ON_OFF
   short accel_x,accel_y,accel_z;                                 //x,y,z轴的加速度
@@ -26,9 +25,13 @@ uint8_t OLED_State=0;                                           //中断状态�
   float cur_yaw,pre_yaw;
 #endif
 
+volatile uint8_t MPU_HIT;
+volatile uint8_t DS18B20_HIT;
+volatile uint8_t MAX30102_HIT;
+uint8_t MAX30102_RDY;
+
 int main(void)
 {
-  uint8_t ret;
   Debug_USART_init();
   delay_init();
 	LED_Init();
@@ -39,54 +42,36 @@ int main(void)
 
 #if MAX30102_ON_OFF
   Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
+  Max30102_Get_First_Sample(&RED,&IR,&SPO2_Value,&HR_Value);
   LED_ON(1);
   printf("Max30102 Init Success\r\n");
 #endif
 
 #if DS18B20_ON_OFF
-  ret = DS18B20_Init();                                            //DS18B20 温度传感器初始化
-  if(ret==0){
-    LED_ON(3);
-    printf("DS18B20 Init Success\r\n");
-  }else{
-    printf("DS18B20 Init Fail\r\n");
-    return 0;
-  } 
+  while(DS18B20_Init());                                            //DS18B20 温度传感器初始化
+  LED_ON(3);
+  printf("DS18B20 Init Success\r\n");
+
 #endif
 
 #if MPU6050_ON_OFF
-	ret = MPU_Init();                                                 //MPU6050 角速度，加速度传感器初始化
-  if(!ret){
-    printf("MPU6050 Init Success\r\n");
-  }else{
-    printf("MPU6050 Init Fail\r\n");
-    return 0;
-  }
+	while(MPU_Init());                                                 //MPU6050 角速度，加速度传感器初始化
+  printf("MPU6050 Init Success\r\n");
 
-  ret = mpu_dmp_init();
-  if(ret == 0){
-    LED_ON(4);
-    printf("DMP Init Success\r\n");
-  }else{
-    printf("DMP Init Fail,ERR Code:%d\r\n",ret);
-    return 0;
-  }
-  if(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw) == 0){
-    pre_pitch = cur_pitch;
-    pre_roll = cur_roll;
-    pre_yaw = cur_yaw;
-  }
+  while(mpu_dmp_init());
+  printf("DMP Init Success\r\n");
+  while(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw) != 0);
+  LED_ON(4);
+  pre_pitch = cur_pitch;
+  pre_roll = cur_roll;
+  pre_yaw = cur_yaw;
 #endif
 
 #if ESP_ON_OFF
-	ret = ESP8266_Init();                                           //ESP8266 WIFI模块初始化
-  if(ret != 0){
-    printf("Error State:%d\r\n",ret);
-    return 0;
-  }else{
-    LED_ON(5);
-    printf("ESP8266 Init Success\r\n");
-  }
+	while(ESP8266_Init());                                           //ESP8266 WIFI模块初始化
+  LED_ON(5);
+  printf("ESP8266 Init Success\r\n");
+  
 #endif
 
 #if OLED_ON_OFF
@@ -95,7 +80,7 @@ int main(void)
 #endif
 
 #if TIM2_ON_OFF
-  tim2_init(19999,7199); //温度 2S读一次
+  tim2_init(4999,7199); //温度 500ms读一次
 #endif
 
 #if TIM3_ON_OFF
@@ -103,23 +88,32 @@ int main(void)
 #endif
 
 #if TIM4_ON_OFF
-  tim4_init(9999,7199);  //Max30102 1s读一次
+  tim4_init(500,7199);  //Max30102 1500ms读一次
 #endif
 
-#if MAX30102_ON_OFF
-  Max30102_Get_First_Sample(&RED,&IR,&SPO2_Value,&HR_Value);
-#endif
 
-#if MPU6050_ON_OFF  
-  mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw);
-#endif
-
-  delay_ms(3000); //延时3s等待外设读取初始数据
+  //delay_ms(3000); //延时3s等待外设读取初始数据
   
 
   
   while (1)
   {
+    if(MPU_HIT){
+      mpu6050_task();
+    }
+
+    if(DS18B20_HIT){
+      ds18b20_task();
+    }
+
+    if(MAX30102_RDY){
+      /* if(MAX30102_HIT){
+        max30102_task();
+      } */
+      max30102_task();
+    }
+    
+
   //ESP发送数据
 #if ESP_ON_OFF
 
@@ -198,4 +192,33 @@ int main(void)
     
 }
 
+#if MPU6050_ON_OFF
+void mpu6050_task(void)
+{
+  if(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw) == 0){
+        pre_pitch = cur_pitch;
+        pre_roll = cur_roll;
+        pre_yaw = cur_yaw;
+        printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",cur_pitch,cur_roll,cur_yaw);
+        MPU_HIT = 0;
+      }
+}
+#endif
 
+#if DS18B20_ON_OFF
+void ds18b20_task(void)
+{
+  cur_temperature = DS18B20_Read_Temp();                           //采集温度
+  printf("Temp:%.2f",cur_temperature);
+  DS18B20_HIT = 0;
+}
+#endif
+
+#if MAX30102_ON_OFF
+void max30102_task(void)
+{
+  Max30102_Calculate(&RED,&IR,&SPO2_Value,&HR_Value);
+  printf("SPO2_Value:%d HR_Value:%d \r\n",SPO2_Value,HR_Value);
+  MAX30102_HIT = 0;
+}
+#endif
