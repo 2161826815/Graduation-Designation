@@ -40,7 +40,7 @@ void Max30102_Init(void)
     
     
 #if USE_Soft_I2C
-    soft_i2c_config();
+    Soft_IIC_Init();
 #else
     I2C_Config();
 #endif

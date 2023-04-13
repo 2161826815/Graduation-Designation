@@ -2,7 +2,8 @@
 #define __MPUIIC_H
 #include "sys.h"
 
-//IO操作函数	
+//IO操作函数
+#define Sofr_IIC_Port GPIOB
 #define Soft_IIC_SCL GPIO_Pin_10
 #define Soft_IIC_SDA GPIO_Pin_11
 

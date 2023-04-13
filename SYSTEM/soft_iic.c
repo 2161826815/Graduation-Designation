@@ -15,7 +15,7 @@ void Soft_IIC_Init(void)
 	GPIO_InitStructure.GPIO_Pin = Soft_IIC_SCL | Soft_IIC_SDA;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_Init(Sofr_IIC_Port, &GPIO_InitStructure);
 
 	GPIO_SetBits(GPIOB, Soft_IIC_SCL | Soft_IIC_SDA);
 }

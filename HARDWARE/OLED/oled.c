@@ -156,7 +156,7 @@ void OLED_Clear(unsigned dat)
 void OLED_Init_GPIO(void)
 {
 #if USE_MY_SOFT_I2C
-	soft_i2c_config();
+	Soft_IIC_Init();
 #elif USE_MY_HARD_I2C
 	I2C_Config();
 #else

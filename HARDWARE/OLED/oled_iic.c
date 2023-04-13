@@ -1,11 +1,11 @@
-		#include "oled_iic.h"
+#include "oled_iic.h"
 #include "soft_iic.h"
 #include "i2c.h"
 
 void IIC_Start(void)
 {
 #if USE_MY_SOFT_I2C
-	soft_i2c_start();
+	Soft_IIC_Start();
 #else
 	OLED_SCL_SET();
 	OLED_SDA_SET();
@@ -17,7 +17,7 @@ void IIC_Start(void)
 void IIC_Stop(void)
 {
 #if USE_MY_SOFT_I2C
-	soft_i2c_stop();
+	Soft_IIC_Stop();
 #else	
 	OLED_SCL_SET();
 	OLED_SDA_CLR();
@@ -29,7 +29,7 @@ void IIC_Stop(void)
 void IIC_Wait_Ack(void)
 {
 #if USE_MY_SOFT_I2C
-	soft_i2c_wait_ack();
+	Soft_IIC_Wait_Ack();
 #else
 	OLED_SCL_SET();
 	OLED_SCL_CLR();
@@ -40,7 +40,7 @@ void IIC_Wait_Ack(void)
 void Write_IIC_Byte(uint8_t IIC_Byte)
 {
 #if USE_MY_SOFT_I2C
-	soft_i2c_send_byte(IIC_Byte);
+	Soft_IIC_Send_Byte(IIC_Byte);
 
 #else
 	uint8_t i;
@@ -69,7 +69,8 @@ void Write_IIC_Byte(uint8_t IIC_Byte)
 void Write_IIC_Command(uint8_t IIC_Command)
 {
 #if USE_MY_SOFT_I2C
-	soft_i2c_write_byte(I2C2,IIC_SLAVE_ADDR,0x00,IIC_Command,1);
+	uint8_t ret;
+	ret = Soft_IIC_Write_One_Byte(IIC_SLAVE_ADDR, 0x00, IIC_Command);
 #elif USE_MY_HARD_I2C
 	I2C_write_OneByte(I2C2,IIC_SLAVE_ADDR,0x00,IIC_Command,1);
 #else
@@ -87,7 +88,7 @@ void Write_IIC_Command(uint8_t IIC_Command)
 void Write_IIC_Data(uint8_t IIC_Data)
 {
 #if USE_MY_SOFT_I2C
-	soft_i2c_write_byte(I2C2,IIC_SLAVE_ADDR,0x40,IIC_Data,1);
+	Soft_IIC_Write_One_Byte(IIC_SLAVE_ADDR, 0x40, IIC_Data);
 
 #elif USE_MY_HARD_I2C
 	I2C_write_OneByte(I2C2,IIC_SLAVE_ADDR,0x40,IIC_Data,1);

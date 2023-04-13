@@ -13,7 +13,9 @@
 #include "MPU6050.h"
 #include "main.h"
 #include "test.h"
-
+#include <math.h>
+#include <stdlib.h>
+#include "TIM.h"
 #if ESP_ON_OFF
 uint8_t ESP_Data[255];
 #endif
@@ -35,17 +37,29 @@ int main(void)
   short accel_x,accel_y,accel_z;                                 //x,y,z轴的加速度
   short gyro_x,gyro_y,gyro_z;                                     //x,y,z轴的角速度
 #endif
-
+#if MPU6050_ON_OFF
+  float cur_pitch,pre_pitch;
+  float cur_roll,pre_roll;
+  float cur_yaw,pre_yaw;
+#endif
   Debug_USART_init();                                             //调试串口初始化
   delay_init();                                                   //Systick初始化
 	LED_Init();                                                     //LED初始化
   Key_Init();                                                     //独立按键初始化
+#if TIM2_ON_OFF
+  tim2_init(4999,7199);
+#endif
+
+#if TIM3_ON_OFF
+  tim3_init(4999,7199);
+#endif
+
 #if BEEP_ON_OFF
   BEEP_Init();                                                    //蜂鸣器Init
 #endif
 #if MAX30102_ON_OFF
-		Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
-    printf("Max30102 Init Success\r\n");
+  Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
+  printf("Max30102 Init Success\r\n");
 #endif
 
 #if ESP_ON_OFF
@@ -78,15 +92,19 @@ int main(void)
   }else{
     printf("MPU6050 Init Fail\r\n");
   }
-  
+
   ret = mpu_dmp_init();
   if(ret == 0){
     printf("DMP Init Success\r\n");
   }else{
     printf("DMP Init Fail,ERR Code:%d\r\n",ret);
   }
+  if(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw) == 0){
+    pre_pitch = cur_pitch;
+    pre_roll = cur_roll;
+    pre_yaw = cur_yaw;
+}
 #endif
-
 		LED_ON(1);
 		LED_ON(3);
 		LED_ON(4);
@@ -124,15 +142,30 @@ int main(void)
 #endif
 
 #if MPU6050_ON_OFF
-    float pitch;
-    float roll;
-    float yaw;
-    if(mpu_dmp_get_data(&pitch,&roll,&yaw) == 0){
+    
+    if(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw) == 0){
+        
+      if(fabs((cur_pitch-pre_pitch)) >= 60){
+        printf("LED3 Toggle\r\n");
+        LED_Toggle(3);
+      }
+      if(fabs(cur_roll-pre_roll) >= 60){
+        printf("LED4 Toggle\r\n");
+        LED_Toggle(4);
+      }
+      if(fabs(cur_yaw-pre_yaw) >= 60){
+        printf("LED5 Toggle\r\n");
+        LED_Toggle(5);
+      }
       MPU_Get_Accelerometer(&accel_x,&accel_y,&accel_z);
       MPU_Get_Gyroscope(&gyro_x,&gyro_y,&gyro_z);
-      printf("Pitch:  %f\r\n",(float)pitch);
-			printf("Roll:  %f\r\n",(float)roll);
-			printf("yaw:  %f\r\n",(float)yaw);
+      printf("Pitch:  %f\r\n",(float)cur_pitch);
+			printf("Roll:  %f\r\n",(float)cur_roll);
+			printf("yaw:  %f\r\n",(float)cur_yaw);
+      pre_pitch = cur_pitch;
+      pre_roll = cur_roll;
+      pre_yaw = cur_yaw;
+      delay_ms(2000);
     }
 #endif 
 #if OLED_ON_OFF  

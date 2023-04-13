@@ -33,16 +33,16 @@ void I2C_Config(void)
 void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t data,uint8_t num)
 {
 #if USE_Soft_I2C
-    soft_i2c_write_byte(I2Cx,slave_addr,reg_addr,data,num);
+    Soft_IIC_Write_One_Byte(slave_addr,reg_addr,data);
 #else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
     //EV5
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_MODE_SELECT));
-    printf("Start success\r\n");
+    //printf("Start success\r\n");
     I2C_Send7bitAddress(I2Cx,slave_addr,I2C_Direction_Transmitter); //send slave addr
     //EV6
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
-    printf("send slave addr success\r\n");
+    //printf("send slave addr success\r\n");
     I2C_SendData(I2Cx,reg_addr); //send register addr
     //EV8
     while(!I2C_CheckEvent(I2Cx,I2C_EVENT_MASTER_BYTE_TRANSMITTED));
@@ -56,10 +56,10 @@ void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uin
 #endif
 }
 
-void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t const*data,uint8_t num)
+void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,const uint8_t *data,uint8_t num)
 {
 #if USE_Soft_I2C
-    soft_i2c_write_bytes(I2Cx,slave_addr,reg_addr,data,num);
+    Soft_IIC_Write_Bytes(I2Cx,slave_addr,reg_addr,num,data);
 #else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
     //EV5
@@ -88,7 +88,7 @@ void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8
 void I2C_read_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t *data,uint8_t num)
 {
 #if USE_Soft_I2C
-    soft_i2c_read_data(I2Cx,slave_addr,reg_addr,data,num);
+    Soft_IIC_Read_Bytes(slave_addr,reg_addr,num,data);
 #else
     I2C_GenerateSTART(I2Cx,ENABLE);  //Start Signal
     //EV5
