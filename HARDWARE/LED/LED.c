@@ -19,8 +19,8 @@ void LED_Init(void)
 	LED_Struct.GPIO_Pin = LED1_Pin;
 	GPIO_Init(LED1_Port,&LED_Struct);
 
-	GPIO_ResetBits(LED3_Port,LED3_Pin |  LED4_Pin |  LED5_Pin);
-	GPIO_ResetBits(LED1_Port,LED1_Pin);
+	GPIO_SetBits(LED3_Port,LED3_Pin |  LED4_Pin |  LED5_Pin);
+	GPIO_SetBits(LED1_Port,LED1_Pin);
 }
 
 void LED_ON(int num)
