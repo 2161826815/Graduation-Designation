@@ -1,6 +1,7 @@
 #include "Task_List.h"
-#include "SysTick.h"
+#include "TIM.h"
 #include "USART.h"
+#include "SysTick.h"
 
 void list_init(list_item* head)
 {
@@ -67,7 +68,7 @@ list_item* list_delete_tail(list_item *head)
 }
 
 
-//队列 next循环
+//栈 next循环
 uint8_t list_add_head(list_item* head,list_item *item)
 {
     if(is_head_valid(head)){
@@ -77,7 +78,7 @@ uint8_t list_add_head(list_item* head,list_item *item)
 		return 0;
 }
 
-//栈 next循环
+//队列 next循环
 uint8_t list_add_tail(list_item* head,list_item *item)
 {
     if(is_head_valid(head)){
@@ -87,11 +88,11 @@ uint8_t list_add_tail(list_item* head,list_item *item)
 		return 0;
 }
 
-//队列从next加
+//栈从next加
 void task_add(list_item *head,Task_t *task)
 {
     list_delete_item(&(task->task_item));
-    list_add_head(head,&(task->task_item));
+    list_add_tail(head,&(task->task_item));
 }
 
 void task_dispatch(list_item* head)
@@ -99,19 +100,15 @@ void task_dispatch(list_item* head)
     list_item *item;
     list_item *n;
     Task_t* m_task;
-    list_for_each_next_safe(item,n,head){
-        m_task = container_of(Task_t,task_item,item);
-        m_task->remain += get_tick()+m_task->Period*1000;
-    }
     while(1){
         list_for_each_next_safe(item,n,head){
             m_task = container_of(Task_t,task_item,item);
-            if(get_tick() == m_task->remain){
-                printf("dao qi\r\n");
-                m_task->task();  
-                m_task->remain += get_tick()+m_task->Period*1000;
-                //task_add(head,m_task);
+            m_task->remain = task_get_tick()+(m_task->Period);
+            while((task_get_tick() != m_task->remain)){
             }
+            m_task->task();
+            m_task->remain = 0;
+            task_add(head,m_task);
         }
     }
 }

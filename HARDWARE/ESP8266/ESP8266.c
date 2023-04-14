@@ -203,7 +203,7 @@ void esp8266_task(void)
 void esp8266_task_init(void)
 {
     m_esp8266_task.Period = ESP8266_Period;
-    m_esp8266_task.remain = ESP8266_Period*1000;
+    m_esp8266_task.remain = 0;
     m_esp8266_task.task = &esp8266_task;
 }
 

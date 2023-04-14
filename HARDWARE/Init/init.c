@@ -22,7 +22,6 @@ void peripheral_init(list_item *task_head)
     list_init(task_head);
 
     sys_tick_init();
-
     LED_Init();
     led_task_init();
     task_add(task_head,&m_led_task);
@@ -52,8 +51,9 @@ void peripheral_init(list_item *task_head)
     while(MPU_Init());                                                 //MPU6050 角速度，加速度传感器初始化
     printf("MPU6050 Init Success\r\n");
     while(mpu_dmp_init());
-    printf("DMP Init Success\r\n");
+
     while(mpu_dmp_get_data(&fir_pitch,&fir_roll,&fir_yaw) != 0);
+    printf("DMP Init Success\r\n");
     LED_ON(4);
 
     mpu6050_task_init();
@@ -79,4 +79,5 @@ void peripheral_init(list_item *task_head)
     task_add(task_head,&m_oled_test_task);
 #endif
     
+    tim3_init(99,7199); //10ms
 }

@@ -136,7 +136,7 @@ uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az)
 void mpu6050_task(void)
 {
     while(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw))
-    //printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",cur_pitch,cur_roll,cur_yaw);
+    printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",cur_pitch,cur_roll,cur_yaw);
     if(fabs(cur_pitch-fir_pitch) > 30 || fabs(cur_roll-fir_roll) > 30){
       	LED_ON(1);
       	BEEP_ON();
@@ -149,6 +149,6 @@ void mpu6050_task(void)
 void mpu6050_task_init(void)
 {
     m_mpu6050_task.Period = MPU6050_Period;
-	m_mpu6050_task.remain = MPU6050_Period*1000;
+	m_mpu6050_task.remain = 0;
     m_mpu6050_task.task = &mpu6050_task;
 }

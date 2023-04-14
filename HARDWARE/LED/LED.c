@@ -86,12 +86,16 @@ void LED_Toggle(int num)
 
 void led_task(void)
 {
-    LED_Toggle(1);
+	//static uint8_t OFF_ON;
+	LED_Toggle(1);
+	LED_Toggle(5);
+	LED_Toggle(3);
+    LED_Toggle(4);
 }
 
 void led_task_init(void)
 {
     m_led_task.Period = LED_Period;
-	m_led_task.remain= LED_Period*1000;
+	m_led_task.remain= 0;
     m_led_task.task = &led_task;
 }

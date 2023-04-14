@@ -50,7 +50,6 @@ void Max30102_Init(void)
     I2C_Config();
 #endif
     Max30102_Reset();
-
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_1_rigister,0xC0,1);  //Enable A_FULL and PPG_RDY
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_wr_ptr_rigister,0x00,1);         //Write_prt reset
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,over_flow_cnt_rigister,0x00,1);       //over_flow_ptr reset
@@ -161,6 +160,6 @@ void max30102_task(void)
 void max30102_task_init(void)
 {
     m_max30102_task.Period = MAX30102_Period;
-    m_max30102_task.remain = MAX30102_Period*1000;
+    m_max30102_task.remain = 0;
     m_max30102_task.task = &max30102_task;
 }

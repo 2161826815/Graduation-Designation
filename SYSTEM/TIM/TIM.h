@@ -8,5 +8,5 @@
 void tim2_init(uint16_t Period,uint16_t PSC);
 void tim3_init(uint16_t Period,uint16_t PSC);
 void tim4_init(uint16_t Period,uint16_t PSC);
-
+uint32_t task_get_tick(void);
 #endif
