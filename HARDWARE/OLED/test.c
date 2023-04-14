@@ -45,7 +45,7 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "oled.h"
-#include "delay.h"
+#include "SysTick.h"
 #include "gui.h"
 #include "test.h"
 #include "bmp.h"

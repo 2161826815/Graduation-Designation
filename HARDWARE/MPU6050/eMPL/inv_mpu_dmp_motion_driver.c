@@ -8,7 +8,7 @@
 #include "dmpKey.h"
 #include "dmpmap.h"
 #include "usart.h"
-#include "delay.h"
+#include "SysTick.h"
 
 //����Ŀ������MSP430
 #define  MOTION_DRIVER_TARGET_MSP430

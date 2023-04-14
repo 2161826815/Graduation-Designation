@@ -1,5 +1,7 @@
 #include "ESP8266.h"
-
+#include "Task_List.h"
+#include "init.h"
+Task_t m_esp8266_task;
 extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
 char Pub_Data[PUB_SIZE];
 uint16_t RCV_CNT=0;
@@ -53,7 +55,6 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
         }else{
 
         }
-        delay_ms(10);
     }
 #endif
 
@@ -128,7 +129,8 @@ uint8_t ESP8266_Init()
     return 0;
 }
 
-void ESP8266_Pub_Data(float data,int type)
+//Success:0 Fail:1
+uint8_t ESP8266_Pub_Data(float data,int type)
 {
     switch(type){
     case Type_Temperature:
@@ -142,7 +144,7 @@ void ESP8266_Pub_Data(float data,int type)
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
             printf("Pub Temperature Success\r\n");
         }else{
-            printf("Pub Temperature Fail\r\n");
+            return 1;
         }
         break;
     case Type_HR:
@@ -157,7 +159,7 @@ void ESP8266_Pub_Data(float data,int type)
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
             printf("Pub HR Success\r\n");
         }else{
-            printf("Pub HR Fail\r\n");
+            return 1;
         }
         break;
        
@@ -172,7 +174,7 @@ void ESP8266_Pub_Data(float data,int type)
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
             printf("Pub SPO2 Success\r\n");
         }else{
-            printf("Pub SPO2 Fail\r\n");
+            return 1;
         }  
         break;
 
@@ -180,6 +182,28 @@ void ESP8266_Pub_Data(float data,int type)
         break;
     }
     memset(Pub_Data,0,sizeof(uint8_t)*PUB_SIZE);
+    return 0;
+}
+
+extern float cur_temperature,last_temperature;
+extern int32_t SPO2_Value,HR_Value;
+void esp8266_task(void)
+{
+    if(cur_temperature != last_temperature){
+        while(ESP8266_Pub_Data(cur_temperature,Type_Temperature));
+    }
+    if(SPO2_Value>0){
+        while(ESP8266_Pub_Data(SPO2_Value,Type_SPO2));
+    }
+    if(HR_Value>0){
+        while(ESP8266_Pub_Data(HR_Value,Type_HR));
+    }
+}
+
+void esp8266_task_init(void)
+{
+    m_esp8266_task.Period = 400; //200ms
+    m_esp8266_task.task = &esp8266_task;
 }
 
 /*

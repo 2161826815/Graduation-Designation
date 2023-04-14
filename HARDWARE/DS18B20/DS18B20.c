@@ -1,5 +1,10 @@
 #include "DS18B20.h"
-#include "delay.h"
+#include "SysTick.h"
+#include "Task_List.h"
+#include "init.h"
+
+float last_temperature = 0,cur_temperature = 0;                  //温度值
+Task_t m_ds18b20_task;
 
 uint8_t DS18B20_Init(void)
 {
@@ -154,4 +159,23 @@ float DS18B20_Read_Temp(void)
     else                                    //正数
         return temp*0.0625;
     
+}
+
+void ds18b20_task(void)
+{
+    cur_temperature = DS18B20_Read_Temp();      //采集温度
+    printf("Temp:%.2f\r\n",cur_temperature);
+    if(cur_temperature != last_temperature){
+      last_temperature = cur_temperature;
+    }
+    if(cur_temperature > 38){
+      BEEP_ON();
+    }
+
+}
+
+void ds18b20_task_init(void)
+{
+    m_ds18b20_task.Period = 300; //300ms
+    m_ds18b20_task.task = &ds18b20_task;
 }

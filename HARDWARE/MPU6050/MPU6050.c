@@ -1,7 +1,13 @@
 #include "mpu6050.h"
 #include "sys.h"
-#include "delay.h"
+#include "SysTick.h"
 #include "USART.h"
+#include "Task_List.h"
+#include "init.h"
+Task_t m_mpu6050_task;
+float cur_pitch,fir_pitch;
+float cur_roll,fir_roll;
+float cur_yaw,fir_yaw;
 
 uint8_t MPU_Init(void)
 {
@@ -22,7 +28,7 @@ uint8_t MPU_Init(void)
 	delay_ms(100);
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X00); // 唤醒MPU6050
 	MPU_Set_Gyro_Fsr(3);										// 陀螺仪传感器2000dps
-	MPU_Set_Accel_Fsr(0);										// 加速度传感器2g
+	MPU_Set_Accel_Fsr(0);										// 加速度传感器±2g
 	MPU_Set_Rate(50);											// 设置采样率50Hz
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_INT_EN_REG, 0X00);	// 关闭所有中断
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_USER_CTRL_REG, 0X00); // I2C主模式关闭
@@ -125,4 +131,23 @@ uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az)
 		*az = ((u16)buf[4] << 8) | buf[5];
 	}
 	return res;
+}
+
+void mpu6050_task(void)
+{
+    while(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw))
+    printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",cur_pitch,cur_roll,cur_yaw);
+    if(fabs(cur_pitch-fir_pitch) > 30 || fabs(cur_roll-fir_roll) > 30){
+      	LED_ON(1);
+      	BEEP_ON();
+    }else{
+      	LED_OFF(1);
+      	BEEP_OFF();
+    }
+}
+
+void mpu6050_task_init(void)
+{
+    m_mpu6050_task.Period = 100; //100ms
+    m_mpu6050_task.task = &mpu6050_task;
 }

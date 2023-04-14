@@ -30,3 +30,4 @@ uint8_t DS18B20_Read_Byte(void);
 float DS18B20_Read_Temp(void);
 void DS18B20_RST(void);
 uint8_t DS18B20_Check(void);
+void ds18b20_task_init(void);

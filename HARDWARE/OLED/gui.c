@@ -45,7 +45,7 @@
 #include "oled.h"
 #include "string.h"
 #include "oledfont.h" 
-#include "delay.h"
+#include "SysTick.h"
 #include "gui.h"
 
 /*******************************************************************

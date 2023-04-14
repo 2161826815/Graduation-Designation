@@ -1,10 +1,14 @@
 #include "oled.h"
 #include "stdlib.h"
 #include "string.h" 	 
-#include "delay.h"
+#include "SysTick.h"
 #include "oled_iic.h"
 #include "soft_iic.h"
 #include "i2c.h"
+#include "init.h"
+
+Task_t m_oled_task;
+Task_t m_oled_test_task;
 
 static unsigned char OLED_buffer[1024] = 
 {
@@ -202,33 +206,42 @@ void OLED_Init(void)
 	OLED_WR_Byte(0x40,OLED_CMD);                
 	OLED_WR_Byte(0xAF,OLED_CMD);    /*display ON*/    
 }
-  
 
+extern float cur_temperature;
+extern uint32_t HR_Value,SPO2_Value;
+void oled_task(void)
+{
+    GUI_ShowString(0,0,(uint8_t*)"temperature:",8,1);                       //OLED显示温度
+    GUI_ShowNum(96,0,cur_temperature,10,8,1);
+      
+    GUI_ShowString(0,8,(uint8_t*)"HR:",8,1);                                //OLED显示心率
+    GUI_ShowNum(24,8,HR_Value,10,8,1);
 
+    GUI_ShowString(0,16,(uint8_t*)"SPO2:",8,1);                             //OLED显示血氧浓度
+    GUI_ShowNum(40,16,SPO2_Value,10,8,1);
 
+    delay_ms(1000);  
+    OLED_Clear(0);  
+}
 
+void oled_task_init(void)
+{
+    m_oled_task.Period = 500; //300ms
+    m_oled_task.task = &oled_task;
+}  
 
+void oled_test_task(void)
+{
+	TEST_English();          //英文显示测试
+	OLED_Clear(0); 
+	TEST_Number_Character(); //数字和符号显示测试
+	OLED_Clear(0); 
+	TEST_Chinese();          //中文显示测试
+	OLED_Clear(0); 
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void oled_test_task_init(void)
+{
+    m_oled_task.Period = 600; //600ms
+    m_oled_task.task = &oled_test_task;
+}  

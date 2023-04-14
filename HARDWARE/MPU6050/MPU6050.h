@@ -84,6 +84,6 @@ uint8_t MPU_Set_Rate(u16 rate);
 short MPU_Get_Temperature(void);
 uint8_t MPU_Get_Gyroscope(short *gx,short *gy,short *gz);
 uint8_t MPU_Get_Accelerometer(short *ax,short *ay,short *az);
-
+void mpu6050_task_init(void);
 #endif
 
