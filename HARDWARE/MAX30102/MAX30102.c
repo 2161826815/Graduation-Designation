@@ -160,6 +160,7 @@ void max30102_task(void)
 
 void max30102_task_init(void)
 {
-    m_max30102_task.Period = 200; //200ms
+    m_max30102_task.Period = MAX30102_Period;
+    m_max30102_task.remain = MAX30102_Period*1000;
     m_max30102_task.task = &max30102_task;
 }

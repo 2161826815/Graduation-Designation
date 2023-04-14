@@ -1,6 +1,7 @@
 #include "Systick.h"
-
+#include "init.h"
 volatile uint32_t m_tick;
+extern uint8_t m_ms;
 
 void sys_tick_init(void)
 {
@@ -11,7 +12,7 @@ void sys_tick_init(void)
     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
 }
 
-uint32_t get_tick(void)
+uint32_t inline get_tick(void)
 {
     return m_tick;
 }
@@ -29,7 +30,7 @@ void delay_ms(uint32_t time)
 }
 
 void SysTick_Handler(void)
-{
+{   
     ++m_tick;
 }
 

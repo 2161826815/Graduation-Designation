@@ -6,12 +6,14 @@ extern float fir_yaw;
 
 uint8_t MAX30102_RDY;
 
+extern Task_t m_led_task;
 extern Task_t m_ds18b20_task;
 extern Task_t m_max30102_task;
 extern Task_t m_mpu6050_task;
 extern Task_t m_oled_task;
 extern Task_t m_oled_test_task;
 extern Task_t m_esp8266_task;
+
 
 void peripheral_init(list_item *task_head)
 {
@@ -22,6 +24,8 @@ void peripheral_init(list_item *task_head)
     sys_tick_init();
 
     LED_Init();
+    led_task_init();
+    task_add(task_head,&m_led_task);
 
     Key_Init();
 
@@ -74,5 +78,5 @@ void peripheral_init(list_item *task_head)
 #if OLED_TEST_ON_OFF
     task_add(task_head,&m_oled_test_task);
 #endif
-
+    
 }

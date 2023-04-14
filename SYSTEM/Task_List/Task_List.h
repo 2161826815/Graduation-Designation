@@ -4,6 +4,9 @@
 #include "stm32f10x.h"
 #include <stdio.h>
 
+#define LIST_NULL ((void*)0)
+#define TIME_SLOT (5)//时间片
+
 typedef struct list_item{
     struct list_item *pre;
     struct list_item *next;
@@ -12,6 +15,7 @@ typedef struct list_item{
 typedef struct Task{
     void (*task)(void);
     uint32_t Period;
+    uint32_t remain;
     list_item task_item;
 }Task_t;
 

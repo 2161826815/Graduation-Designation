@@ -176,6 +176,7 @@ void ds18b20_task(void)
 
 void ds18b20_task_init(void)
 {
-    m_ds18b20_task.Period = 300; //300ms
+    m_ds18b20_task.Period = DS18B20_Period;
+    m_ds18b20_task.remain = DS18B20_Period*1000;
     m_ds18b20_task.task = &ds18b20_task;
 }

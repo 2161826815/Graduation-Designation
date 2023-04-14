@@ -22,9 +22,9 @@
 
 #define BEEP_ON_OFF             0
 #define ESP_ON_OFF              0
-#define DS18B20_ON_OFF          1
+#define DS18B20_ON_OFF          0
 #define MAX30102_ON_OFF         0
-#define MPU6050_ON_OFF          1
+#define MPU6050_ON_OFF          0
 #define OLED_ON_OFF             0
 #define OLED_TEST_ON_OFF        0
 #define TIM2_ON_OFF             0
@@ -40,6 +40,14 @@ typedef enum fsm{
     fsm_task_esp8266,
     fsm_task_oled,
 }fsm_t;
+
+#define LED_Period          1000
+#define DS18B20_Period      50
+#define OLED_Period         50
+#define OLED_TEST_Period    50
+#define MAX30102_Period     50
+#define MPU6050_Period      50
+#define ESP8266_Period      50
 
 void mpu6050_task(void);
 void ds18b20_task(void);

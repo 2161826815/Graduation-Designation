@@ -226,7 +226,8 @@ void oled_task(void)
 
 void oled_task_init(void)
 {
-    m_oled_task.Period = 500; //300ms
+    m_oled_task.Period = OLED_Period;
+	m_oled_task.remain = OLED_Period*1000;
     m_oled_task.task = &oled_task;
 }  
 
@@ -242,6 +243,7 @@ void oled_test_task(void)
 
 void oled_test_task_init(void)
 {
-    m_oled_task.Period = 600; //600ms
-    m_oled_task.task = &oled_test_task;
+    m_oled_test_task.Period = OLED_TEST_Period;
+	m_oled_test_task.remain = OLED_TEST_Period*1000;
+    m_oled_test_task.task = &oled_test_task;
 }  
