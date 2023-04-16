@@ -1,6 +1,7 @@
 #include "LED.h"
 #include "init.h"
 Task_t m_led_task;
+Task_t m_led2_task;
 void LED_Init(void)
 {
 	RCC_APB2PeriphClockCmd(LED_Clock_Port,ENABLE);
@@ -87,15 +88,28 @@ void LED_Toggle(int num)
 void led_task(void)
 {
 	//static uint8_t OFF_ON;
-	LED_Toggle(1);
-	LED_Toggle(5);
-	LED_Toggle(3);
-    LED_Toggle(4);
+	//LED_Toggle(1);
+	//LED_Toggle(5);
+	//LED_Toggle(3);
+    //LED_Toggle(4);
+	delay_ms(50);
+}
+
+void led2_task(void)
+{
+	delay_ms(50);
 }
 
 void led_task_init(void)
 {
     m_led_task.Period = LED_Period;
-	m_led_task.remain= 0;
+	m_led_task.remain= m_led2_task.Period;
     m_led_task.task = &led_task;
+}
+
+void led2_task_init(void)
+{
+    m_led2_task.Period = LED2_Period;
+	m_led2_task.remain= m_led2_task.Period;
+    m_led2_task.task = &led2_task;
 }

@@ -2,7 +2,7 @@
 #include "TIM.h"
 #include "USART.h"
 #include "SysTick.h"
-
+#include "LED.h"
 void list_init(list_item* head)
 {
     head->next = head;
@@ -67,18 +67,7 @@ list_item* list_delete_tail(list_item *head)
     return del;
 }
 
-
-//栈 next循环
-uint8_t list_add_head(list_item* head,list_item *item)
-{
-    if(is_head_valid(head)){
-        return 1;
-    }
-    list_insert(item,head,head->next);
-		return 0;
-}
-
-//队列 next循环
+//栈next循环
 uint8_t list_add_tail(list_item* head,list_item *item)
 {
     if(is_head_valid(head)){
@@ -88,27 +77,79 @@ uint8_t list_add_tail(list_item* head,list_item *item)
 		return 0;
 }
 
-//栈从next加
+//队列 next循环
+uint8_t list_add_head(list_item* head,list_item *item)
+{
+    if(is_head_valid(head)){
+        return 1;
+    }
+    list_insert(item,head,head->next);
+		return 0;
+}
+
+//栈 从pre加
 void task_add(list_item *head,Task_t *task)
 {
     list_delete_item(&(task->task_item));
     list_add_tail(head,&(task->task_item));
 }
 
+#if 1
 void task_dispatch(list_item* head)
 {
     list_item *item;
     list_item *n;
-    Task_t* m_task;
+    Task_t *m_task;
     while(1){
         list_for_each_next_safe(item,n,head){
+            LED_Toggle(5);      //判断任务正在切换
             m_task = container_of(Task_t,task_item,item);
-            m_task->remain = task_get_tick()+(m_task->Period);
-            while((task_get_tick() != m_task->remain)){
+            m_task->atomic = 0;
+            if(m_task->Period > 0){     //周期任务
+                if(m_task->remain <= 0){
+                    m_task->atomic = 1;             //原子执行
+                    m_task->task();
+                    m_task->remain = m_task->Period;
+                    task_add(head,m_task);
+                    m_task->atomic = 0;
+                }else{
+                    if(m_task->remain < TIME_SLICE)
+                        task_add(head,m_task);
+                        continue;
+                }
+            }else{  //非周期任务
+                m_task->task();
             }
-            m_task->task();
-            m_task->remain = 0;
-            task_add(head,m_task);
+        }      
+    }
+}
+#endif
+#if 0
+void task_dispatch(list_item* head)
+{
+    list_item *item;
+    list_item *n;
+    Task_t *m_task;
+    list_for_each_next_safe(item,n,head){
+        m_task = container_of(Task_t,task_item,item);
+        m_task->remain = tim_get_tick()+m_task->Period;
+    }
+    while(1){
+        list_for_each_next_safe(item,n,head){
+            LED_Toggle(5);      //判断任务正在切换
+            m_task = container_of(Task_t,task_item,item);
+            if(m_task->Period > 0){
+                if(tim_get_tick() >= m_task->remain){
+                    m_task->task();
+                    m_task->remain = tim_get_tick()+m_task->Period;
+                }else{
+                    continue;
+                }
+            }else{
+                m_task->task();
+            }  
         }
     }
 }
+#endif
+

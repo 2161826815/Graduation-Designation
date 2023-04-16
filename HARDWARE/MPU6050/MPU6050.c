@@ -5,9 +5,9 @@
 #include "Task_List.h"
 #include "init.h"
 Task_t m_mpu6050_task;
-float cur_pitch,fir_pitch;
-float cur_roll,fir_roll;
-float cur_yaw,fir_yaw;
+float fir_pitch;
+float fir_roll;
+float fir_yaw;
 
 uint8_t MPU_Init(void)
 {
@@ -133,22 +133,34 @@ uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az)
 	return res;
 }
 
+extern data_buff_t all_data,pre_data;
 void mpu6050_task(void)
 {
-    while(mpu_dmp_get_data(&cur_pitch,&cur_roll,&cur_yaw))
-    printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",cur_pitch,cur_roll,cur_yaw);
-    if(fabs(cur_pitch-fir_pitch) > 30 || fabs(cur_roll-fir_roll) > 30){
-      	LED_ON(1);
-      	BEEP_ON();
-    }else{
-      	LED_OFF(1);
-      	BEEP_OFF();
-    }
+	uint8_t ret;
+    ret = mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw);
+    //printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",cur_pitch,cur_roll,cur_yaw);
+	if(!ret){
+		if(all_data.pitch !=0 && all_data.roll!= 0 && all_data.yaw != 0){
+			LED_ON(3);
+			if(fabs(all_data.pitch-fir_pitch) > 30 || fabs(all_data.roll-fir_roll) > 30){
+				BEEP_ON();
+			}else{
+      			BEEP_OFF();
+    		}
+		}else{
+			LED_OFF(3);
+		}
+	}else{
+		all_data.pitch = 0;
+		all_data.roll = 0;
+		all_data.yaw = 0;
+		LED_OFF(3);
+	}
 }
 
 void mpu6050_task_init(void)
 {
     m_mpu6050_task.Period = MPU6050_Period;
-	m_mpu6050_task.remain = 0;
+	m_mpu6050_task.remain = m_mpu6050_task.Period;
     m_mpu6050_task.task = &mpu6050_task;
 }

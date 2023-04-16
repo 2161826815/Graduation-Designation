@@ -89,6 +89,13 @@ void USART1_IRQHandler(void)         //Problem 1
   }
 }
 
+void EXTI_IRQHandler(void)
+{
+  if(EXTI_GetITStatus(EXTI_Line1) == SET){
+    printf("1\r\n");
+    EXTI_ClearITPendingBit(EXTI_Line8);
+  }
+}
 
 extern uint8_t MAX30102_RDY;
 void EXTI9_5_IRQHandler(void)

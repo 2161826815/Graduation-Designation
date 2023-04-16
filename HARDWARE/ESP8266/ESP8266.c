@@ -185,25 +185,24 @@ uint8_t ESP8266_Pub_Data(float data,int type)
     return 0;
 }
 
-extern float cur_temperature,last_temperature;
-extern int32_t SPO2_Value,HR_Value;
+extern data_buff_t all_data,pre_data;
 void esp8266_task(void)
 {
-    if(cur_temperature != last_temperature){
-        while(ESP8266_Pub_Data(cur_temperature,Type_Temperature));
+    if(all_data.temperature != pre_data.temperature){
+        while(ESP8266_Pub_Data(all_data.temperature,Type_Temperature));
     }
-    if(SPO2_Value>0){
-        while(ESP8266_Pub_Data(SPO2_Value,Type_SPO2));
+    if(all_data.SPO2>0){
+        while(ESP8266_Pub_Data(all_data.SPO2,Type_SPO2));
     }
-    if(HR_Value>0){
-        while(ESP8266_Pub_Data(HR_Value,Type_HR));
+    if(all_data.HR>0){
+        while(ESP8266_Pub_Data(all_data.HR,Type_HR));
     }
 }
 
 void esp8266_task_init(void)
 {
     m_esp8266_task.Period = ESP8266_Period;
-    m_esp8266_task.remain = 0;
+    m_esp8266_task.remain = m_esp8266_task.Period;
     m_esp8266_task.task = &esp8266_task;
 }
 

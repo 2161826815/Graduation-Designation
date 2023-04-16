@@ -79,16 +79,19 @@ static unsigned char OLED_buffer[1024] =
 };
 
 
-void OLED_WR_Byte(unsigned dat,unsigned cmd)
+uint8_t OLED_WR_Byte(unsigned dat,unsigned cmd)
 {
+	uint8_t ret;
 	if(cmd)
 	{
-		 Write_IIC_Data(dat);
+		ret = Write_IIC_Data(dat);
 	}
 	else
 	{
-		Write_IIC_Command(dat);
+		ret = Write_IIC_Command(dat);
+		
 	}
+	return ret;
 }
 
 
@@ -165,7 +168,8 @@ void OLED_Init_GPIO(void)
 	I2C_Config();
 #else
 	GPIO_InitTypeDef  GPIO_InitStructure;
- 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4;
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -173,13 +177,14 @@ void OLED_Init_GPIO(void)
  	GPIO_SetBits(GPIOB,GPIO_Pin_3|GPIO_Pin_4);
 #endif
 }
-			    
+
+
 void OLED_Init(void)
 {
  	OLED_Init_GPIO();
  	delay_ms(200);
 	
-	OLED_WR_Byte(0xAE,OLED_CMD);    /*display off*/       
+	OLED_WR_Byte(0xAE,OLED_CMD);    /*display off*/
 	OLED_WR_Byte(0x02,OLED_CMD);    /*set lower column address*/       
 	OLED_WR_Byte(0x10,OLED_CMD);    /*set higher column address*/     
 	OLED_WR_Byte(0x40,OLED_CMD);    /*set display start line*/     
@@ -207,27 +212,125 @@ void OLED_Init(void)
 	OLED_WR_Byte(0xAF,OLED_CMD);    /*display ON*/    
 }
 
-extern float cur_temperature;
-extern uint32_t HR_Value,SPO2_Value;
+extern data_buff_t all_data,pre_data;
 void oled_task(void)
 {
-    GUI_ShowString(0,0,(uint8_t*)"temperature:",8,1);                       //OLED显示温度
-    GUI_ShowNum(96,0,cur_temperature,10,8,1);
+	LED_Toggle(3);
+	delay_ms(10);
+#if DS18B20_ON_OFF
+	uint32_t temp_int,temp_float;
+	temp_int = (uint32_t)all_data.temperature;
+	temp_float = (uint32_t)(all_data.temperature-temp_int*100);
+	if(all_data.temperature < 0)
+		GUI_ShowChar(30,0,'-',8,1);
+	else
+		GUI_ShowChar(30,0,'+',8,1);
+	//if(OLED_DS18B20_Fresh){
+		if(temp_int<=9){
+			GUI_ShowNum(36,0,0,1,8,1);
+			GUI_ShowNum(42,0,temp_int,1,8,1);
+		}else{
+			GUI_ShowNum(36,0,temp_int,2,8,1);
+		}
+		GUI_ShowChar(48,0,'.',8,1);
+
+		if(temp_float<=9){
+			GUI_ShowNum(54,0,0,1,8,1);
+			GUI_ShowNum(60,0,temp_float,1,8,1);
+		}else{
+			GUI_ShowNum(54,0,temp_float,2,8,1);
+		}
+	//}
+#endif
+
+#if MPU6050_ON_OFF
+	uint32_t pitch_int,pitch_float;
+	uint32_t roll_int,roll_float;
+	uint32_t yaw_int,yaw_float;
+	pitch_int = (uint32_t)fabs(all_data.pitch);
+	pitch_float = (uint32_t)((fabs(all_data.pitch)-pitch_int)*100);
+
+	roll_int = (uint32_t)fabs(all_data.roll);
+	roll_float = (uint32_t)((fabs(all_data.roll)-roll_int)*100);
+
+	yaw_int = (uint32_t)fabs(all_data.yaw);
+	yaw_float = (uint32_t)((fabs(all_data.yaw)-yaw_int)*100);
+	//显示pitch
+	if(all_data.pitch != 0){
+		if(all_data.pitch < 0)
+			GUI_ShowChar(36,10,'-',8,1);
+		else
+			GUI_ShowChar(36,10,'+',8,1);
+		if(pitch_int<=9){
+			GUI_ShowNum(42,10,0,1,8,1);
+			GUI_ShowNum(48,10,pitch_int,1,8,1);
+		}else{
+			GUI_ShowNum(42,10,pitch_int,2,8,1);
+		}
+		GUI_ShowChar(54,10,'.',8,1);
+		if(pitch_float<=9){
+			GUI_ShowNum(60,10,0,1,8,1);
+			GUI_ShowNum(66,10,pitch_float,1,8,1);
+		}else{
+			GUI_ShowNum(60,10,pitch_float,2,8,1);
+		}
+	}
+	//显示roll
+	if(all_data.roll != 0){
+		if(all_data.roll < 0)
+			GUI_ShowChar(30,20,'-',8,1);
+		else
+			GUI_ShowChar(30,20,'+',8,1);
+		if(roll_int<=9){
+			GUI_ShowNum(36,20,0,1,8,1);
+			GUI_ShowNum(42,20,roll_float,1,8,1);
+		}else{
+			GUI_ShowNum(36,20,roll_float,2,8,1);
+		}
+		GUI_ShowChar(48,20,'.',8,1);
+		if(roll_float<=9){
+			GUI_ShowNum(54,20,0,1,8,1);
+			GUI_ShowNum(60,20,roll_float,1,8,1);
+		}else{
+			GUI_ShowNum(54,20,roll_float,2,8,1);
+		}
+	}
+
+	//显示yaw
+	if(all_data.yaw != 0){
+		if(all_data.yaw < 0)
+			GUI_ShowChar(24,30,'-',8,1);
+		else
+			GUI_ShowChar(24,30,'+',8,1);
+		if(yaw_int<=9){
+			GUI_ShowNum(30,30,0,1,8,1);
+			GUI_ShowNum(36,30,yaw_int,1,8,1);
+		}else{
+			GUI_ShowNum(30,30,yaw_int,2,8,1);
+		}
+		GUI_ShowChar(42,30,'.',8,1);
+		if(yaw_float<=9){
+			GUI_ShowNum(48,30,0,1,8,1);
+			GUI_ShowNum(54,30,yaw_float,1,8,1);
+		}else{
+			GUI_ShowNum(48,30,yaw_float,2,8,1);
+		}
+	}
+#endif
       
-    GUI_ShowString(0,8,(uint8_t*)"HR:",8,1);                                //OLED显示心率
-    GUI_ShowNum(24,8,HR_Value,10,8,1);
+    //GUI_ShowString(0,8,(uint8_t*)"HR:",8,1);                                //OLED显示心率
+    //GUI_ShowNum(24,8,HR_Value,10,8,1);
 
-    GUI_ShowString(0,16,(uint8_t*)"SPO2:",8,1);                             //OLED显示血氧浓度
-    GUI_ShowNum(40,16,SPO2_Value,10,8,1);
+    //GUI_ShowString(0,16,(uint8_t*)"SPO2:",8,1);                             //OLED显示血氧浓度
+    //GUI_ShowNum(40,16,SPO2_Value,10,8,1);
 
-    delay_ms(1000);  
-    OLED_Clear(0);  
+    //delay_ms(100); 
 }
 
 void oled_task_init(void)
 {
     m_oled_task.Period = OLED_Period;
-	m_oled_task.remain = 0;
+	m_oled_task.remain = m_oled_task.Period;
     m_oled_task.task = &oled_task;
 }  
 
@@ -244,6 +347,6 @@ void oled_test_task(void)
 void oled_test_task_init(void)
 {
     m_oled_test_task.Period = OLED_TEST_Period;
-	m_oled_test_task.remain = 0;
+	m_oled_test_task.remain = m_oled_test_task.Period;
     m_oled_test_task.task = &oled_test_task;
 }  

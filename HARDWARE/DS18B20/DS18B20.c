@@ -3,11 +3,12 @@
 #include "Task_List.h"
 #include "init.h"
 
-float last_temperature = 0,cur_temperature = 0;                  //温度值
-Task_t m_ds18b20_task;
+Task_t m_ds18b20_read_task;
+Task_t m_ds18b20_convert_task;
 
 uint8_t DS18B20_Init(void)
 {
+    uint8_t ret;
     RCC_APB2PeriphClockCmd(DS18B20_GPIO_RCC,ENABLE);
 
     GPIO_InitTypeDef ds18b20_struct;
@@ -17,7 +18,8 @@ uint8_t DS18B20_Init(void)
     GPIO_Init(DS18B20_PORT,&ds18b20_struct);
 
     DS18B20_RST();
-    return DS18B20_Check();
+    ret = DS18B20_Check();
+    return ret;
 }
 
 void DS18B20_Mode_Change(uint8_t mode_cmd)
@@ -40,7 +42,7 @@ void DS18B20_RST(void)
 {
     DS18B20_Mode_Change(OUTPUT);
     DS18B20_LOW;
-    delay_us(750);
+    delay_us(480);
     DS18B20_HIGH;
     delay_us(30);
 }
@@ -137,15 +139,19 @@ void DS18B20_Start(void)
     }
 } 
 
-float DS18B20_Read_Temp(void)
+void DS18B20_Convert(void)
 {
-    uint8_t LOW=0,HIGH=0;
-    uint16_t temp = 0;
     DS18B20_Start();
     DS18B20_Write_Byte(0xcc);
     DS18B20_Write_Byte(0x44);               //convert
     delay_ms(750);
-        
+}
+
+float DS18B20_Read_Temp(void)
+{
+    uint8_t LOW=0,HIGH=0;
+    uint16_t temp = 0;
+
     DS18B20_Start();
     DS18B20_Write_Byte(0xcc);
     DS18B20_Write_Byte(0xbe);               //read
@@ -153,30 +159,63 @@ float DS18B20_Read_Temp(void)
     LOW = DS18B20_Read_Byte();
     HIGH = DS18B20_Read_Byte();
     temp = (HIGH << 8) + LOW;
-                                            //Problem 4
-    if((temp & 0xf800) == 0xf800)          //负数
+                                        
+    if((temp & 0xf800) == 0xf800)        
         return (~temp + 0x01)*-0.0625;
-    else                                    //正数
+    else                                 
         return temp*0.0625;
-    
 }
 
-void ds18b20_task(void)
+void da18b20_convert_task(void)
 {
-    cur_temperature = DS18B20_Read_Temp();      //采集温度
-    printf("Temp:%.2f\r\n",cur_temperature);
-    if(cur_temperature != last_temperature){
-      last_temperature = cur_temperature;
+    if(m_ds18b20_read_task.pri_data == 0){
+        DS18B20_Start();
+        DS18B20_Write_Byte(0xcc);
+        DS18B20_Write_Byte(0x44);//convert
+        m_ds18b20_read_task.pri_data = 1;
     }
-    if(cur_temperature > 38){
-      BEEP_ON();
-    }
-
 }
 
-void ds18b20_task_init(void)
+void ds18b20_convert_task_init(void)
 {
-    m_ds18b20_task.Period = DS18B20_Period;
-    m_ds18b20_task.remain = 0;
-    m_ds18b20_task.task = &ds18b20_task;
+    m_ds18b20_convert_task.Period = DS18B20_convert_Period;
+    m_ds18b20_convert_task.remain = m_ds18b20_convert_task.Period;
+    m_ds18b20_convert_task.task = &da18b20_convert_task;
 }
+
+
+extern data_buff_t all_data,pre_data;
+uint8_t OLED_DS18B20_Fresh;
+void ds18b20_read_task(void)
+{
+    all_data.temperature = DS18B20_Read_Temp();      //采集温度
+    m_ds18b20_read_task.pri_data = 0;   //读取完成,发送转换指令
+
+    if(all_data.temperature != pre_data.temperature){
+        pre_data.temperature = all_data.temperature;
+    }
+    if(all_data.temperature > 0){
+        //printf("temp:%.2f\r\n",cur_temperature);
+        LED_ON(1);
+    }else{
+        LED_OFF(1);
+    }
+#if BEEP_ON_OFF
+    if(all_data.temperature > 38){
+        BEEP_ON();
+    }else{
+        BEEP_OFF();
+    }
+#endif
+
+}
+void ds18b20_read_task_init(void)
+{
+    m_ds18b20_read_task.Period = DS18B20_READ_Period;
+    m_ds18b20_read_task.remain = m_ds18b20_read_task.Period;
+    m_ds18b20_read_task.task = &ds18b20_read_task;
+}
+
+
+
+

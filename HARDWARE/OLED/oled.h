@@ -14,7 +14,7 @@
 #define OLED_DATA    1	
    						  						
 
-void OLED_WR_Byte(unsigned dat,unsigned cmd);     							   		    
+uint8_t OLED_WR_Byte(unsigned dat,unsigned cmd);     							   		    
 void OLED_Display_On(void);
 void OLED_Display_Off(void);
 void OLED_Set_Pos(unsigned char x, unsigned char y);

@@ -4,12 +4,12 @@
 
 //IO操作函数
 #define Sofr_IIC_Port GPIOB
-#define Soft_IIC_SCL GPIO_Pin_10
-#define Soft_IIC_SDA GPIO_Pin_11
+#define Soft_IIC_SCL GPIO_Pin_3
+#define Soft_IIC_SDA GPIO_Pin_4
 
-#define IIC_SCL    PBout(10) 		//SCL
-#define IIC_SDA    PBout(11) 		//SDA	 
-#define READ_SDA   PBin(11) 		//输入SDA 
+#define IIC_SCL    PBout(3) 		//SCL
+#define IIC_SDA    PBout(4) 		//SDA	 
+#define READ_SDA   PBin(4) 		//输入SDA 
 
 //IIC所有操作函数
 void IIC_Delay(void);				//IIC延时2ms函数

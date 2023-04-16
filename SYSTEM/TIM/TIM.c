@@ -1,4 +1,4 @@
-#include "TIM.h"
+#include "init.h"
 void tim2_init(uint16_t Period,uint16_t PSC)
 {
     TIM_TimeBaseInitTypeDef TIM2_Base_Struct;
@@ -27,10 +27,10 @@ void tim2_init(uint16_t Period,uint16_t PSC)
 //定时器频率为72000000/(xxx+1)
 //PWM频率为 定时器频率/period
 //TIM_SetCompare2(TIM3,xxx);//设置通道2占空比
-uint32_t ms_tick = 0;
-uint32_t task_get_tick(void)
+volatile uint32_t tim_tick = 0;
+uint32_t inline tim_get_tick(void)
 {
-    return ms_tick;
+    return tim_tick;
 }
 
 void tim3_init(uint16_t Period,uint16_t PSC)
@@ -107,25 +107,51 @@ void tim4_init(uint16_t Period,uint16_t PSC)
 }
 
 
+//mpu6050
 void TIM2_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM2,TIM_IT_Update) != RESET){
-
+        //mpu6050_task();
+        //ds18b20_task();
         TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
     }
 }
 
 
 //任务定时器
+
+#if 0
 void TIM3_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM3,TIM_IT_Update) != RESET){
-        ms_tick += 10;
-
+            tim_tick += TIM_IT_TIME;
+        
         TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
     }
 }
-
+#endif
+#if 1
+extern list_item task_head;
+uint8_t cnt = 0;
+void TIM3_IRQHandler(void)
+{
+    if(TIM_GetFlagStatus(TIM3,TIM_IT_Update) != RESET){
+        cnt += TIM_IT_TIME;
+        if(cnt >= TIME_SLICE){
+            cnt = 0;
+            list_item *item;
+            list_item *n;
+            Task_t* m_task;
+            list_for_each_next_safe(item,n,&task_head){
+            m_task = container_of(Task_t,task_item,item);
+            if(!m_task->atomic) //任务在执行时不能减少时间片
+                m_task->remain -= TIM_IT_TIME; 
+            }
+        } 
+        TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
+    }
+}
+#endif
 
 void TIM4_IRQHandler(void)
 {
