@@ -24,7 +24,7 @@
 #define ESP_ON_OFF              0
 #define DS18B20_ON_OFF          1
 #define MAX30102_ON_OFF         0
-#define MPU6050_ON_OFF          0
+#define MPU6050_ON_OFF          1
 #define OLED_ON_OFF             1
 #define OLED_TEST_ON_OFF        0
 #define TIM2_ON_OFF             0
@@ -54,20 +54,19 @@ typedef struct data_buff
 }data_buff_t;
 
 
-#define LED_Period              0
-#define LED2_Period             0
+#define LED_Period              1
+#define LED2_Period             1
 #define DS18B20_READ_Period     750
-#define DS18B20_convert_Period  0
+#define DS18B20_convert_Period  1
+#define OLED_DS18B20_Period     100
+#define OLED_MPU6050_Period     100
+#define OLED_MAX30102_Period    100
 #define OLED_Period             100
 #define OLED_TEST_Period        1500
 #define MAX30102_Period         20
 #define MPU6050_Period          100
 #define ESP8266_Period          50
 
-void mpu6050_task(void);
-void ds18b20_task(void);
-void max30102_task(void);
 
-void peripheral_init(list_item *task_head);
-
+void peripheral_init(void);
 #endif

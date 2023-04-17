@@ -8,7 +8,7 @@
 #define LIST_NULL   ((void*)0)
 
 #define TIM_IT_TIME   (1)   //中断时间
-#define TIME_SLICE    (50)   //时间片
+#define HIT_TIME    (20)   //击中
 
 typedef struct list_item{
     struct list_item *pre;
@@ -21,7 +21,7 @@ typedef struct Task{
     int32_t remain;
     list_item task_item;
     bool atomic;
-    uint32_t exec_time;
+    uint8_t priority;
     uint32_t pri_data;
 }Task_t;
 
@@ -39,6 +39,6 @@ typedef struct Task{
     for(item = (head)->pre,n = item->pre;head != LIST_NULL ;item = n,n = item->pre)
 
 void list_init(list_item* head);
-void task_add(list_item *head,Task_t *task);
-void task_dispatch(list_item* head);
+void task_add(Task_t *task);
+void task_dispatch(void);
 #endif

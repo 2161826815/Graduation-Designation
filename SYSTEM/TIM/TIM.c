@@ -108,11 +108,10 @@ void tim4_init(uint16_t Period,uint16_t PSC)
 
 
 //mpu6050
+extern data_buff_t all_data;
 void TIM2_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM2,TIM_IT_Update) != RESET){
-        //mpu6050_task();
-        //ds18b20_task();
         TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
     }
 }
@@ -131,23 +130,18 @@ void TIM3_IRQHandler(void)
 }
 #endif
 #if 1
-extern list_item task_head;
-uint8_t cnt = 0;
+extern list_item long_task;
 void TIM3_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM3,TIM_IT_Update) != RESET){
-        cnt += TIM_IT_TIME;
-        if(cnt >= TIME_SLICE){
-            cnt = 0;
             list_item *item;
             list_item *n;
             Task_t* m_task;
-            list_for_each_next_safe(item,n,&task_head){
+            list_for_each_next_safe(item,n,&long_task){
             m_task = container_of(Task_t,task_item,item);
             if(!m_task->atomic) //任务在执行时不能减少时间片
-                m_task->remain -= TIM_IT_TIME; 
+                m_task->remain -= HIT_TIME; 
             }
-        } 
         TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
     }
 }

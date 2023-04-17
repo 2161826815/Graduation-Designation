@@ -151,7 +151,7 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
     } 
 }
 
-extern data_buff_t all_data,pre_data;
+extern data_buff_t all_data;
 void max30102_task(void)
 {
     Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
@@ -162,5 +162,6 @@ void max30102_task_init(void)
 {
     m_max30102_task.Period = MAX30102_Period;
     m_max30102_task.remain = m_max30102_task.Period;
+    m_max30102_task.priority = 3;
     m_max30102_task.task = &max30102_task;
 }

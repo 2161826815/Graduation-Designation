@@ -29,7 +29,8 @@ uint8_t MPU_Init(void)
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X00); // 唤醒MPU6050
 	MPU_Set_Gyro_Fsr(3);										// 陀螺仪传感器2000dps
 	MPU_Set_Accel_Fsr(0);										// 加速度传感器±2g
-	MPU_Set_Rate(50);											// 设置采样率50Hz
+	MPU_Set_Rate(50);											// 设置采样率5Hz
+																//OLED太耗时导致FIFO溢出，降低采样率
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_INT_EN_REG, 0X00);	// 关闭所有中断
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_USER_CTRL_REG, 0X00); // I2C主模式关闭
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_FIFO_EN_REG, 0X00);	// 关闭FIFO
@@ -133,34 +134,27 @@ uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az)
 	return res;
 }
 
-extern data_buff_t all_data,pre_data;
+extern data_buff_t all_data;
 void mpu6050_task(void)
-{
-	uint8_t ret;
-    ret = mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw);
-    //printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",cur_pitch,cur_roll,cur_yaw);
-	if(!ret){
-		if(all_data.pitch !=0 && all_data.roll!= 0 && all_data.yaw != 0){
-			LED_ON(3);
-			if(fabs(all_data.pitch-fir_pitch) > 30 || fabs(all_data.roll-fir_roll) > 30){
-				BEEP_ON();
-			}else{
-      			BEEP_OFF();
-    		}
+{  
+	while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
+    //printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",all_data.pitch,all_data.roll,all_data.yaw);
+	if(all_data.pitch !=0 && all_data.roll!= 0 && all_data.yaw != 0){
+		if(fabs(all_data.pitch-fir_pitch) > 30 || fabs(all_data.roll-fir_roll) > 30){
+			BEEP_ON();
 		}else{
-			LED_OFF(3);
+			BEEP_OFF();
 		}
 	}else{
-		all_data.pitch = 0;
-		all_data.roll = 0;
-		all_data.yaw = 0;
 		LED_OFF(3);
 	}
+
 }
 
 void mpu6050_task_init(void)
 {
     m_mpu6050_task.Period = MPU6050_Period;
 	m_mpu6050_task.remain = m_mpu6050_task.Period;
+	m_mpu6050_task.priority = 0;
     m_mpu6050_task.task = &mpu6050_task;
 }

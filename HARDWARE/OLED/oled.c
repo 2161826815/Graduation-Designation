@@ -7,7 +7,9 @@
 #include "i2c.h"
 #include "init.h"
 
-Task_t m_oled_task;
+Task_t m_oled_ds18b20_task;
+Task_t m_oled_mpu6050_task;
+Task_t m_oled_max30102_task;
 Task_t m_oled_test_task;
 
 static unsigned char OLED_buffer[1024] = 
@@ -79,19 +81,24 @@ static unsigned char OLED_buffer[1024] =
 };
 
 
-uint8_t OLED_WR_Byte(unsigned dat,unsigned cmd)
+void OLED_WR_Byte(unsigned dat,unsigned cmd)
 {
-	uint8_t ret;
-	if(cmd)
-	{
-		ret = Write_IIC_Data(dat);
+	if(cmd){
+		I2C_write_OneByte(I2C2,IIC_SLAVE_ADDR,0x40,dat,1);
 	}
-	else
-	{
-		ret = Write_IIC_Command(dat);
-		
+	else{
+		I2C_write_OneByte(I2C2,IIC_SLAVE_ADDR,0x00,dat,1);
 	}
-	return ret;
+}
+
+void OLED_WR_Bytes(unsigned char*dat,unsigned cmd,uint8_t num)
+{
+	if(cmd){
+		I2C_write_Bytes(I2C2,IIC_SLAVE_ADDR,0x40,dat,num);
+	}
+	else{
+		I2C_write_Bytes(I2C2,IIC_SLAVE_ADDR,0x00,dat,num);	
+	}
 }
 
 
@@ -120,40 +127,42 @@ void OLED_Display_Off(void)
 
 void OLED_Set_Pixel(unsigned char x, unsigned char y,unsigned char color)
 {
-	if(color)
-	{
+	if(color){
 		OLED_buffer[(y/PAGE_SIZE)*WIDTH+x]|= (1<<(y%PAGE_SIZE))&0xff;
 	}
-	else
-	{
+	else{
 		OLED_buffer[(y/PAGE_SIZE)*WIDTH+x]&= ~((1<<(y%PAGE_SIZE))&0xff);
 	}
 }		   			 
  
 void OLED_Display(void)
 {
-	uint8_t i,n;		    
-	for(i=0;i<PAGE_SIZE;i++)  
-	{  
+	uint8_t i;
+	uint8_t level[8][3];
+	for(i=0;i<PAGE_SIZE;i++){
+		level[i][0] = YLevel+i;
+		level[i][1] = XLevelL;
+		level[i][2] = XLevelH;
+		OLED_WR_Bytes(&level[i][0],OLED_CMD,3);
+		OLED_WR_Bytes(&OLED_buffer[i*WIDTH],OLED_DATA,WIDTH);
+	}
+	/* for(i=0;i<PAGE_SIZE;i++)  {  
 		OLED_WR_Byte (YLevel+i,OLED_CMD);    
 		OLED_WR_Byte (XLevelL,OLED_CMD);     
 		OLED_WR_Byte (XLevelH,OLED_CMD);     
-		for(n=0;n<WIDTH;n++)
-		{
+		for(n=0;n<WIDTH;n++){
 			OLED_WR_Byte(OLED_buffer[i*WIDTH+n],OLED_DATA); 
-		}
-	}
+		} 
+	} */
 }
 
 
 void OLED_Clear(unsigned dat)  
 {  
-	if(dat)
-	{
+	if(dat){
 		memset(OLED_buffer,0xff,sizeof(OLED_buffer));
 	}
-	else
-	{
+	else{
 		memset(OLED_buffer,0,sizeof(OLED_buffer));
 	}
 	OLED_Display();
@@ -162,70 +171,66 @@ void OLED_Clear(unsigned dat)
 
 void OLED_Init_GPIO(void)
 {
-#if USE_MY_SOFT_I2C
-	Soft_IIC_Init();
-#elif USE_MY_HARD_I2C
 	I2C_Config();
-#else
-	GPIO_InitTypeDef  GPIO_InitStructure;
- 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
-	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4;
- 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
- 	GPIO_Init(GPIOB, &GPIO_InitStructure);
- 	GPIO_SetBits(GPIOB,GPIO_Pin_3|GPIO_Pin_4);
-#endif
 }
 
 
 void OLED_Init(void)
 {
+	uint8_t	OLED_INIT_DATA[26] = {
+		0xae,0x02,0x10,0x40,0xb0,0x81,0xff,0xa1,0xa6,0xa8,0x3f,0xad,0x8b,0x32,0xc8,
+		0xd3,0x00,0xd5,0x80,0xd9,0x1f,0xda,0x12,0xdb,0x40,0xaf
+	};
  	OLED_Init_GPIO();
- 	delay_ms(200);
-	
-	OLED_WR_Byte(0xAE,OLED_CMD);    /*display off*/
-	OLED_WR_Byte(0x02,OLED_CMD);    /*set lower column address*/       
-	OLED_WR_Byte(0x10,OLED_CMD);    /*set higher column address*/     
-	OLED_WR_Byte(0x40,OLED_CMD);    /*set display start line*/     
-	OLED_WR_Byte(0xB0,OLED_CMD);    /*set page address*/     
-	OLED_WR_Byte(0x81,OLED_CMD);    /*contract control*/
-	OLED_WR_Byte(0xFF,OLED_CMD);    /*128*/     
-	OLED_WR_Byte(0xA1,OLED_CMD);    /*set segment remap*/    
-	OLED_WR_Byte(0xA6,OLED_CMD);    /*normal / reverse*/     
-	OLED_WR_Byte(0xA8,OLED_CMD);    /*multiplex ratio*/
-	OLED_WR_Byte(0x3F,OLED_CMD);    /*duty = 1/64*/     
-	OLED_WR_Byte(0xAD,OLED_CMD);    /*set charge pump enable*/
-	OLED_WR_Byte(0x8B,OLED_CMD);     /*    0x8B    �ڹ�VCC   */     
-	OLED_WR_Byte(0x32,OLED_CMD);    /*0X30---0X33  set VPP   8V */     
-	OLED_WR_Byte(0xC8,OLED_CMD);    /*Com scan direction*/     
-	OLED_WR_Byte(0xD3,OLED_CMD);    /*set display offset*/
-	OLED_WR_Byte(0x00,OLED_CMD);   /*   0x20  */     
-	OLED_WR_Byte(0xD5,OLED_CMD);    /*set osc division*/
-	OLED_WR_Byte(0x80,OLED_CMD);         
-	OLED_WR_Byte(0xD9,OLED_CMD);    /*set pre-charge period*/
-	OLED_WR_Byte(0x1F,OLED_CMD);    /*0x22*/     
-	OLED_WR_Byte(0xDA,OLED_CMD);    /*set COM pins*/
-	OLED_WR_Byte(0x12,OLED_CMD);     
-	OLED_WR_Byte(0xDB,OLED_CMD);    /*set vcomh*/
-	OLED_WR_Byte(0x40,OLED_CMD);                
-	OLED_WR_Byte(0xAF,OLED_CMD);    /*display ON*/    
+	OLED_WR_Bytes(OLED_INIT_DATA,OLED_CMD,26);
+	//OLED_WR_Byte(0xAE,OLED_CMD);    /*display off*/
+	//OLED_WR_Byte(0x02,OLED_CMD);    /*set lower column address*/       
+	//OLED_WR_Byte(0x10,OLED_CMD);    /*set higher column address*/     
+	//OLED_WR_Byte(0x40,OLED_CMD);    /*set display start line*/     
+	//OLED_WR_Byte(0xB0,OLED_CMD);    /*set page address*/     
+	//OLED_WR_Byte(0x81,OLED_CMD);    /*contract control*/
+	//OLED_WR_Byte(0xFF,OLED_CMD);    /*128*/     
+	//OLED_WR_Byte(0xA1,OLED_CMD);    /*set segment remap*/    
+	//OLED_WR_Byte(0xA6,OLED_CMD);    /*normal / reverse*/     
+	//OLED_WR_Byte(0xA8,OLED_CMD);    /*multiplex ratio*/
+	//OLED_WR_Byte(0x3F,OLED_CMD);    /*duty = 1/64*/     
+	//OLED_WR_Byte(0xAD,OLED_CMD);    /*set charge pump enable*/
+	//OLED_WR_Byte(0x8B,OLED_CMD);     /*    0x8B    �ڹ�VCC   */     
+	//OLED_WR_Byte(0x32,OLED_CMD);    /*0X30---0X33  set VPP   8V */     
+	//OLED_WR_Byte(0xC8,OLED_CMD);    /*Com scan direction*/     
+	//OLED_WR_Byte(0xD3,OLED_CMD);    /*set display offset*/
+	//OLED_WR_Byte(0x00,OLED_CMD);   /*   0x20  */     
+	//OLED_WR_Byte(0xD5,OLED_CMD);    /*set osc division*/
+	//OLED_WR_Byte(0x80,OLED_CMD);         
+	//OLED_WR_Byte(0xD9,OLED_CMD);    /*set pre-charge period*/
+	//OLED_WR_Byte(0x1F,OLED_CMD);    /*0x22*/     
+	//OLED_WR_Byte(0xDA,OLED_CMD);    /*set COM pins*/
+	//OLED_WR_Byte(0x12,OLED_CMD);     
+	//OLED_WR_Byte(0xDB,OLED_CMD);    /*set vcomh*/
+	//OLED_WR_Byte(0x40,OLED_CMD);                
+	//OLED_WR_Byte(0xAF,OLED_CMD);    /*display ON*/    
 }
 
-extern data_buff_t all_data,pre_data;
-void oled_task(void)
+extern data_buff_t all_data;
+#if DS18B20_ON_OFF
+void oled_ds18b20_task(void)
 {
 	LED_Toggle(3);
-	delay_ms(10);
-#if DS18B20_ON_OFF
+	static float last_temp = 0;
+	float cur_temp;
 	uint32_t temp_int,temp_float;
-	temp_int = (uint32_t)all_data.temperature;
-	temp_float = (uint32_t)(all_data.temperature-temp_int*100);
-	if(all_data.temperature < 0)
+
+	cur_temp = all_data.temperature;
+	if(last_temp == cur_temp)
+		return;
+	
+	last_temp = cur_temp;
+	temp_int = (uint32_t)cur_temp;
+	temp_float = (uint32_t)((cur_temp-temp_int)*100);
+	if(cur_temp < 0)
 		GUI_ShowChar(30,0,'-',8,1);
 	else
 		GUI_ShowChar(30,0,'+',8,1);
-	//if(OLED_DS18B20_Fresh){
 		if(temp_int<=9){
 			GUI_ShowNum(36,0,0,1,8,1);
 			GUI_ShowNum(42,0,temp_int,1,8,1);
@@ -240,84 +245,120 @@ void oled_task(void)
 		}else{
 			GUI_ShowNum(54,0,temp_float,2,8,1);
 		}
-	//}
+}
+
+void oled_ds18b20_task_init()
+{
+	m_oled_ds18b20_task.Period = OLED_DS18B20_Period;
+	m_oled_ds18b20_task.remain = m_oled_ds18b20_task.Period;
+	m_oled_ds18b20_task.priority = 6;
+	m_oled_ds18b20_task.task = &oled_ds18b20_task;
+}
 #endif
 
 #if MPU6050_ON_OFF
+void oled_mpu6050_task(void)
+{
+	static float last_pitch = 0 ,last_roll = 0 ,last_yaw = 0;
+	float cur_pitch,cur_roll,cur_yaw;
 	uint32_t pitch_int,pitch_float;
 	uint32_t roll_int,roll_float;
 	uint32_t yaw_int,yaw_float;
-	pitch_int = (uint32_t)fabs(all_data.pitch);
-	pitch_float = (uint32_t)((fabs(all_data.pitch)-pitch_int)*100);
 
-	roll_int = (uint32_t)fabs(all_data.roll);
-	roll_float = (uint32_t)((fabs(all_data.roll)-roll_int)*100);
+	cur_pitch = all_data.pitch;
+	cur_roll = all_data.roll;
+	cur_yaw = all_data.yaw;
+	
+	if(last_pitch != cur_pitch){
+		pitch_int = (uint32_t)fabs(cur_pitch);
+		pitch_float = (uint32_t)((fabs(cur_pitch)-pitch_int)*100);
 
-	yaw_int = (uint32_t)fabs(all_data.yaw);
-	yaw_float = (uint32_t)((fabs(all_data.yaw)-yaw_int)*100);
-	//显示pitch
-	if(all_data.pitch != 0){
-		if(all_data.pitch < 0)
-			GUI_ShowChar(36,10,'-',8,1);
-		else
-			GUI_ShowChar(36,10,'+',8,1);
-		if(pitch_int<=9){
-			GUI_ShowNum(42,10,0,1,8,1);
-			GUI_ShowNum(48,10,pitch_int,1,8,1);
-		}else{
-			GUI_ShowNum(42,10,pitch_int,2,8,1);
-		}
-		GUI_ShowChar(54,10,'.',8,1);
-		if(pitch_float<=9){
-			GUI_ShowNum(60,10,0,1,8,1);
-			GUI_ShowNum(66,10,pitch_float,1,8,1);
-		}else{
-			GUI_ShowNum(60,10,pitch_float,2,8,1);
+		//显示pitch
+		if(cur_pitch != 0){
+			if(cur_pitch < 0)
+				GUI_ShowChar(36,10,'-',8,1);
+			else
+				GUI_ShowChar(36,10,'+',8,1);
+			if(pitch_int<=9){
+				GUI_ShowNum(42,10,0,1,8,1);
+				GUI_ShowNum(48,10,pitch_int,1,8,1);
+			}else{
+				GUI_ShowNum(42,10,pitch_int,2,8,1);
+			}
+			GUI_ShowChar(54,10,'.',8,1);
+			if(pitch_float<=9){
+				GUI_ShowNum(60,10,0,1,8,1);
+				GUI_ShowNum(66,10,pitch_float,1,8,1);
+			}else{
+				GUI_ShowNum(60,10,pitch_float,2,8,1);
+			}
 		}
 	}
 	//显示roll
-	if(all_data.roll != 0){
-		if(all_data.roll < 0)
-			GUI_ShowChar(30,20,'-',8,1);
-		else
-			GUI_ShowChar(30,20,'+',8,1);
-		if(roll_int<=9){
-			GUI_ShowNum(36,20,0,1,8,1);
-			GUI_ShowNum(42,20,roll_float,1,8,1);
-		}else{
-			GUI_ShowNum(36,20,roll_float,2,8,1);
-		}
-		GUI_ShowChar(48,20,'.',8,1);
-		if(roll_float<=9){
-			GUI_ShowNum(54,20,0,1,8,1);
-			GUI_ShowNum(60,20,roll_float,1,8,1);
-		}else{
-			GUI_ShowNum(54,20,roll_float,2,8,1);
+	if(last_roll != cur_roll){
+		roll_int = (uint32_t)fabs(cur_roll);
+		roll_float = (uint32_t)((fabs(cur_roll)-roll_int)*100);
+
+		if(cur_roll != 0){
+			if(cur_roll < 0)
+				GUI_ShowChar(30,20,'-',8,1);
+			else
+				GUI_ShowChar(30,20,'+',8,1);
+			if(roll_int<=9){
+				GUI_ShowNum(36,20,0,1,8,1);
+				GUI_ShowNum(42,20,roll_float,1,8,1);
+			}else{
+				GUI_ShowNum(36,20,roll_float,2,8,1);
+			}
+			GUI_ShowChar(48,20,'.',8,1);
+			if(roll_float<=9){
+				GUI_ShowNum(54,20,0,1,8,1);
+				GUI_ShowNum(60,20,roll_float,1,8,1);
+			}else{
+				GUI_ShowNum(54,20,roll_float,2,8,1);
+			}
 		}
 	}
 
 	//显示yaw
-	if(all_data.yaw != 0){
-		if(all_data.yaw < 0)
-			GUI_ShowChar(24,30,'-',8,1);
-		else
-			GUI_ShowChar(24,30,'+',8,1);
-		if(yaw_int<=9){
-			GUI_ShowNum(30,30,0,1,8,1);
-			GUI_ShowNum(36,30,yaw_int,1,8,1);
-		}else{
-			GUI_ShowNum(30,30,yaw_int,2,8,1);
-		}
-		GUI_ShowChar(42,30,'.',8,1);
-		if(yaw_float<=9){
-			GUI_ShowNum(48,30,0,1,8,1);
-			GUI_ShowNum(54,30,yaw_float,1,8,1);
-		}else{
-			GUI_ShowNum(48,30,yaw_float,2,8,1);
+	if(last_yaw != cur_yaw){
+		yaw_int = (uint32_t)fabs(cur_yaw);
+		yaw_float = (uint32_t)((fabs(cur_yaw)-yaw_int)*100);
+	
+		if(cur_yaw != 0){
+			if(cur_yaw < 0)
+				GUI_ShowChar(24,30,'-',8,1);
+			else
+				GUI_ShowChar(24,30,'+',8,1);
+			if(yaw_int<=9){
+				GUI_ShowNum(30,30,0,1,8,1);
+				GUI_ShowNum(36,30,yaw_int,1,8,1);
+			}else{
+				GUI_ShowNum(30,30,yaw_int,2,8,1);
+			}
+			GUI_ShowChar(42,30,'.',8,1);
+			if(yaw_float<=9){
+				GUI_ShowNum(48,30,0,1,8,1);
+				GUI_ShowNum(54,30,yaw_float,1,8,1);
+			}else{
+				GUI_ShowNum(48,30,yaw_float,2,8,1);
+			}
 		}
 	}
+}
+
+void oled_mpu6050_task_init()
+{
+	m_oled_mpu6050_task.Period = OLED_MPU6050_Period;
+	m_oled_mpu6050_task.remain = m_oled_mpu6050_task.Period;
+	m_oled_mpu6050_task.priority = 5;
+	m_oled_mpu6050_task.task = &oled_mpu6050_task;
+}
+
 #endif
-      
+
+void oled_max30102_task(void)
+{
     //GUI_ShowString(0,8,(uint8_t*)"HR:",8,1);                                //OLED显示心率
     //GUI_ShowNum(24,8,HR_Value,10,8,1);
 
@@ -327,11 +368,12 @@ void oled_task(void)
     //delay_ms(100); 
 }
 
-void oled_task_init(void)
+void oled_max30102_task_init(void)
 {
-    m_oled_task.Period = OLED_Period;
-	m_oled_task.remain = m_oled_task.Period;
-    m_oled_task.task = &oled_task;
+    m_oled_max30102_task.Period = OLED_Period;
+	m_oled_max30102_task.remain = m_oled_max30102_task.Period;
+	m_oled_max30102_task.priority = 7;
+    m_oled_max30102_task.task = &oled_max30102_task;
 }  
 
 void oled_test_task(void)
@@ -343,10 +385,10 @@ void oled_test_task(void)
 	TEST_Chinese();          //中文显示测试
 	OLED_Clear(0); 
 }
-
 void oled_test_task_init(void)
 {
     m_oled_test_task.Period = OLED_TEST_Period;
 	m_oled_test_task.remain = m_oled_test_task.Period;
+	m_oled_test_task.priority = 8;
     m_oled_test_task.task = &oled_test_task;
 }  

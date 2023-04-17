@@ -180,26 +180,21 @@ void ds18b20_convert_task_init(void)
 {
     m_ds18b20_convert_task.Period = DS18B20_convert_Period;
     m_ds18b20_convert_task.remain = m_ds18b20_convert_task.Period;
+    m_ds18b20_convert_task.priority = 1;
     m_ds18b20_convert_task.task = &da18b20_convert_task;
 }
 
 
-extern data_buff_t all_data,pre_data;
+extern data_buff_t all_data;
 uint8_t OLED_DS18B20_Fresh;
 void ds18b20_read_task(void)
 {
-    all_data.temperature = DS18B20_Read_Temp();      //采集温度
+    float temp;
+    temp = DS18B20_Read_Temp();
+    all_data.temperature =  ((int)(temp*100))/(100.0);
     m_ds18b20_read_task.pri_data = 0;   //读取完成,发送转换指令
 
-    if(all_data.temperature != pre_data.temperature){
-        pre_data.temperature = all_data.temperature;
-    }
-    if(all_data.temperature > 0){
-        //printf("temp:%.2f\r\n",cur_temperature);
-        LED_ON(1);
-    }else{
-        LED_OFF(1);
-    }
+    printf("temp:%.2f\r\n",temp);
 #if BEEP_ON_OFF
     if(all_data.temperature > 38){
         BEEP_ON();
@@ -213,6 +208,7 @@ void ds18b20_read_task_init(void)
 {
     m_ds18b20_read_task.Period = DS18B20_READ_Period;
     m_ds18b20_read_task.remain = m_ds18b20_read_task.Period;
+    m_ds18b20_read_task.priority = 2;
     m_ds18b20_read_task.task = &ds18b20_read_task;
 }
 
