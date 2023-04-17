@@ -33,3 +33,4 @@ uint8_t DS18B20_Check(void);
 void ds18b20_read_task_init(void);
 void ds18b20_convert_task_init(void);
 void DS18B20_Convert(void);
+void ds18b20_read_task(void);

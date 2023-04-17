@@ -7,8 +7,8 @@
 
 #define LIST_NULL   ((void*)0)
 
-#define TIM_IT_TIME   (1)   //中断时间
-#define HIT_TIME    (20)   //击中
+#define TIM_IT_TIME     (2)   //中断时间
+#define HIT_TIME        (15)   //击中
 
 typedef struct list_item{
     struct list_item *pre;

@@ -29,6 +29,15 @@ uint8_t is_head_valid(list_item* head)
     }
 }
 
+//空返回1 ,非空返回0
+uint8_t is_head_empty(list_item* head)
+{
+    if(!head || !head->next || !head->pre)
+        return 1;
+    else
+        return 0;
+}
+
 void list_insert(list_item* item,list_item *pre,list_item *next)
 {
     item->next = next;
@@ -62,6 +71,8 @@ uint8_t list_delete_item(list_item *item)
 
 list_item* list_delete_head(list_item *head)
 {
+    if(is_head_empty(head))
+        return NULL;
     list_item* del = LIST_NULL;
     del = head->next;
     list_delete(head,head->next);
@@ -71,6 +82,8 @@ list_item* list_delete_head(list_item *head)
 
 list_item* list_delete_tail(list_item *head)
 {
+    if(is_head_empty(head))
+        return NULL;
     list_item* del = LIST_NULL;
     del = head->next;
     list_delete(head->pre,head);
@@ -152,13 +165,15 @@ void task_dispatch()
             if(m_task->remain <= 0){    //任务到期
                 m_task->atomic = 1;             //原子执行
                 m_task->task();
+                LED_Toggle(1); //长周期任务切换
                 m_task->remain = m_task->Period;
                 task_add(m_task);
-                LED_Toggle(4);      //正在执行长周期任务
                 m_task->atomic = 0;
             }else{
                 if(m_task->remain < HIT_TIME)     //即将到期
                     task_add(m_task);
+                    LED_Toggle(3);  //只执行了一次
+                    delay_ms(50);
                     continue;
             }
     }
@@ -166,10 +181,12 @@ void task_dispatch()
     list_priority_sort(&hit_task);   //击中链表优先级排序
     list_for_each_next_safe(item,n,&hit_task){    //击中链表
         m_task = container_of(Task_t,task_item,item);
-        if(m_task->priority != 1 && m_task->priority != 9 && m_task->priority != 10)
-            printf("task priority:%d\r\n",m_task->priority);
+        if(m_task->priority != 1 && m_task->priority != 8 && m_task->priority != 9){
+            LED_Toggle(5);
+            //printf("task priority:%d\r\n",m_task->priority);
+        }
         m_task->task();
-        LED_Toggle(5);  //击中任务完成
+        LED_Toggle(1);  //击中任务切换
         m_task->remain = m_task->Period;
         task_add(m_task);
     }

@@ -97,7 +97,7 @@ void EXTI_IRQHandler(void)
   }
 }
 
-extern uint8_t MAX30102_RDY;
+
 void EXTI9_5_IRQHandler(void)
 {
   //KEY3
@@ -114,7 +114,6 @@ void EXTI9_5_IRQHandler(void)
 
   //MAX30102
   if(EXTI_GetITStatus(EXTI_Line5) == SET){
-    MAX30102_RDY = 1;
 
     EXTI_ClearITPendingBit(EXTI_Line5);
   }

@@ -139,9 +139,12 @@ void TIM3_IRQHandler(void)
             Task_t* m_task;
             list_for_each_next_safe(item,n,&long_task){
             m_task = container_of(Task_t,task_item,item);
-            if(!m_task->atomic) //任务在执行时不能减少时间片
-                m_task->remain -= HIT_TIME; 
+            
+            if(!m_task->atomic){ //任务在执行时不能减少时间片
+                m_task->remain -= HIT_TIME;
+			}else{
             }
+        }
         TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
     }
 }

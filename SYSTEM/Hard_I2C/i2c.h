@@ -25,5 +25,5 @@ void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,const
 void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t data,uint8_t num);
 void I2C_read_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uint8_t *data,uint8_t num);
 void I2C_Wait(I2C_TypeDef* I2Cx,uint8_t slave_addr);
-
+void I2C_write_large_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,const uint8_t *data,uint16_t num);
 #endif

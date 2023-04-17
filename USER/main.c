@@ -9,10 +9,8 @@ int main(void)
   peripheral_init();
 
   while(1){
-    /* pre_tick = get_tick();
-    mpu6050_task();
-    cur_tick = get_tick();
-    printf("delay:%d\r\n",cur_tick-pre_tick); */
+    //TEST_English();
+
     cur_tick = get_tick();
     if(cur_tick != pre_tick){  //确保单片机正常运行
       pre_tick++;

@@ -4,15 +4,14 @@ extern float fir_pitch;
 extern float fir_roll;
 extern float fir_yaw;
 
-uint8_t MAX30102_RDY;
-
 extern list_item long_task;
 extern list_item hit_task;
 
+data_buff_t all_data;
 /*
 priority config
 mpu6050 > ds18b20_convert > ds18b20 > max30102 > esp8266 > oled_mpu6050 > oled_ds18b20 > oled_max30102 > 
-oled_test > led1 > led2 
+led1 > led2 
 */
 extern Task_t m_led_task;
 extern Task_t m_led2_task;          
@@ -21,13 +20,12 @@ extern Task_t m_ds18b20_convert_task;
 extern Task_t m_max30102_task;
 extern Task_t m_mpu6050_task;
 extern Task_t m_oled_task;
-extern Task_t m_oled_test_task;
 extern Task_t m_esp8266_task;
 extern Task_t m_oled_ds18b20_task;
 extern Task_t m_oled_mpu6050_task;
 extern Task_t m_oled_max30102_task;
 
-data_buff_t all_data;
+
 
 void peripheral_init(void)
 {
@@ -37,10 +35,10 @@ void peripheral_init(void)
     LED_Init();
 
     //通过不断闪烁LED代表任务正在不断调度切换
-    /* led_task_init();
+    led_task_init();
     task_add(&m_led_task);
     led2_task_init();
-    task_add(&m_led2_task); */
+    task_add(&m_led2_task);
 
     Key_Init();
 
@@ -73,13 +71,6 @@ void peripheral_init(void)
     task_add(&m_oled_mpu6050_task);
 #endif
 
-#endif
-
-#if OLED_TEST_ON_OFF
-    OLED_Init();
-	OLED_Clear(0);
-    oled_test_task_init();
-    task_add(&m_oled_test_task);
 #endif
 
 #if MPU6050_ON_OFF

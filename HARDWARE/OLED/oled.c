@@ -10,7 +10,6 @@
 Task_t m_oled_ds18b20_task;
 Task_t m_oled_mpu6050_task;
 Task_t m_oled_max30102_task;
-Task_t m_oled_test_task;
 
 static unsigned char OLED_buffer[1024] = 
 {
@@ -101,6 +100,15 @@ void OLED_WR_Bytes(unsigned char*dat,unsigned cmd,uint8_t num)
 	}
 }
 
+void OLED_WR_large_Bytes(unsigned char*dat,unsigned cmd,uint16_t num)
+{
+	if(cmd){
+		I2C_write_large_Bytes(I2C2,IIC_SLAVE_ADDR,0x40,dat,num);
+	}
+	else{
+		I2C_write_large_Bytes(I2C2,IIC_SLAVE_ADDR,0x00,dat,num);	
+	}
+}
 
 void OLED_Set_Pos(unsigned char x, unsigned char y) 
 {
@@ -134,18 +142,30 @@ void OLED_Set_Pixel(unsigned char x, unsigned char y,unsigned char color)
 		OLED_buffer[(y/PAGE_SIZE)*WIDTH+x]&= ~((1<<(y%PAGE_SIZE))&0xff);
 	}
 }		   			 
- 
+
+uint8_t level[8][3] = {
+	{0xb0,0x02,0x10},
+	{0xb1,0x02,0x10},
+	{0xb2,0x02,0x10},
+	{0xb3,0x02,0x10},
+	{0xb4,0x02,0x10},
+	{0xb5,0x02,0x10},
+	{0xb6,0x02,0x10},
+	{0xb7,0x02,0x10},
+};
 void OLED_Display(void)
 {
 	uint8_t i;
-	uint8_t level[8][3];
+	//uint8_t level[8][3];
 	for(i=0;i<PAGE_SIZE;i++){
-		level[i][0] = YLevel+i;
+/* 		level[i][0] = YLevel+i;
 		level[i][1] = XLevelL;
-		level[i][2] = XLevelH;
+		level[i][2] = XLevelH; */
 		OLED_WR_Bytes(&level[i][0],OLED_CMD,3);
 		OLED_WR_Bytes(&OLED_buffer[i*WIDTH],OLED_DATA,WIDTH);
 	}
+	//OLED_WR_large_Bytes(OLED_buffer,OLED_DATA,WIDTH*PAGE_SIZE);
+
 	/* for(i=0;i<PAGE_SIZE;i++)  {  
 		OLED_WR_Byte (YLevel+i,OLED_CMD);    
 		OLED_WR_Byte (XLevelL,OLED_CMD);     
@@ -215,7 +235,6 @@ extern data_buff_t all_data;
 #if DS18B20_ON_OFF
 void oled_ds18b20_task(void)
 {
-	LED_Toggle(3);
 	static float last_temp = 0;
 	float cur_temp;
 	uint32_t temp_int,temp_float;
@@ -374,21 +393,4 @@ void oled_max30102_task_init(void)
 	m_oled_max30102_task.remain = m_oled_max30102_task.Period;
 	m_oled_max30102_task.priority = 7;
     m_oled_max30102_task.task = &oled_max30102_task;
-}  
-
-void oled_test_task(void)
-{
-	TEST_English();          //英文显示测试
-	OLED_Clear(0); 
-	TEST_Number_Character(); //数字和符号显示测试
-	OLED_Clear(0); 
-	TEST_Chinese();          //中文显示测试
-	OLED_Clear(0); 
-}
-void oled_test_task_init(void)
-{
-    m_oled_test_task.Period = OLED_TEST_Period;
-	m_oled_test_task.remain = m_oled_test_task.Period;
-	m_oled_test_task.priority = 8;
-    m_oled_test_task.task = &oled_test_task;
 }  

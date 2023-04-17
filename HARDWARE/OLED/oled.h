@@ -23,7 +23,8 @@ void OLED_Init(void);
 void OLED_Set_Pixel(unsigned char x, unsigned char y,unsigned char color);
 void OLED_Display(void);
 void OLED_Clear(unsigned dat);
-void oled_test_task_init(void);
 void oled_ds18b20_task_init(void);
 void oled_mpu6050_task_init(void);
+void oled_ds18b20_task(void);
+void OLED_WR_large_Bytes(unsigned char*dat,unsigned cmd,uint16_t num);
 #endif

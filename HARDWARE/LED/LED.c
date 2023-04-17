@@ -88,20 +88,20 @@ void LED_Toggle(int num)
 void led_task(void)
 {
 	//printf("led task\r\n");
-	//delay_ms(20);
+	delay_ms(30);
 }
 
 void led2_task(void)
 {
 	//printf("led2 task\r\n");
-	//delay_ms(20);
+	delay_ms(30);
 }
 
 void led_task_init(void)
 {
     m_led_task.Period = LED_Period;
 	m_led_task.remain= m_led2_task.Period;
-	m_led_task.priority = 9;
+	m_led_task.priority = 8;
     m_led_task.task = &led_task;
 }
 
@@ -109,6 +109,6 @@ void led2_task_init(void)
 {
     m_led2_task.Period = LED2_Period;
 	m_led2_task.remain= m_led2_task.Period;
-	m_led2_task.priority = 10;
+	m_led2_task.priority = 9;
     m_led2_task.task = &led2_task;
 }
