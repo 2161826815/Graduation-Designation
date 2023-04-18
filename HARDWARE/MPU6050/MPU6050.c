@@ -14,18 +14,36 @@ uint8_t MPU_Init(void)
 	uint8_t ret_addr,res;
 
 	GPIO_InitTypeDef GPIO_InitStructure;
+	EXTI_InitTypeDef EXTI_Struct;
+	NVIC_InitTypeDef NVIC_Struct;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE); //外部中断
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB,GPIO_PinSource1);
+
+	EXTI_Struct.EXTI_Line = EXTI_Line1;
+	EXTI_Struct.EXTI_LineCmd = ENABLE;
+	EXTI_Struct.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_Struct.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_Init(&EXTI_Struct);
+
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+	NVIC_Struct.NVIC_IRQChannel = EXTI1_IRQn;
+	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_Struct.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init(&NVIC_Struct);
 
 	Soft_IIC_Init();
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X80); // 复位MPU6050
 	delay_ms(100);
+	Soft_IIC_Write_One_Byte(MPU_ADDR,MPU_INT_EN_REG,0x01);  	//开启FIFO中断
+	Soft_IIC_Write_One_Byte(MPU_ADDR,MPU_INTBP_CFG_REG,0x80);	//low trigger
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X00); // 唤醒MPU6050
 	MPU_Set_Gyro_Fsr(3);										// 陀螺仪传感器2000dps
 	MPU_Set_Accel_Fsr(0);										// 加速度传感器±2g
@@ -158,3 +176,15 @@ void mpu6050_task_init(void)
 	m_mpu6050_task.priority = 0;
     m_mpu6050_task.task = &mpu6050_task;
 }
+
+extern uint8_t MPU_IT_STATUS;
+/* void EXTI1_IRQHandler()
+{
+	if(EXTI_GetITStatus(EXTI_Line1) == SET){
+		if(MPU_IT_STATUS){
+			while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
+    		printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",all_data.pitch,all_data.roll,all_data.yaw);
+		}
+    	EXTI_ClearITPendingBit(EXTI_Line8);
+  	}
+} */

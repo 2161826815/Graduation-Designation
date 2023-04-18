@@ -102,9 +102,13 @@ void tim4_init(uint16_t Period,uint16_t PSC)
 
 
 //mpu6050
+extern data_buff_t all_data;
 void TIM2_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM2,TIM_IT_Update) != RESET){
+        //mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw);
+        while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
+        printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",all_data.pitch,all_data.roll,all_data.yaw);
         TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
     }
 }

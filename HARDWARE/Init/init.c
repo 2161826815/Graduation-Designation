@@ -25,6 +25,8 @@ extern Task_t m_oled_max30102_task;
 extern list_item long_task;
 extern list_item hit_task[HIT_MAX];
 
+uint8_t MPU_IT_STATUS;
+
 void peripheral_init(void)
 {
     uint8_t i;
@@ -45,7 +47,18 @@ void peripheral_init(void)
     Key_Init();
 
     BEEP_Init();
+#if MPU6050_ON_OFF
 
+    while(MPU_Init());                                                 //MPU6050 角速度，加速度传感器初始化
+    printf("MPU6050 Init Success\r\n");
+    while(mpu_dmp_init());
+
+    while(mpu_dmp_get_data(&fir_pitch,&fir_roll,&fir_yaw) != 0);
+    printf("DMP Init Success\r\n");
+    /* mpu6050_task_init();
+    task_add(&m_mpu6050_task,m_mpu6050_task.Period); */
+    MPU_IT_STATUS = 1;
+#endif
 
 #if MAX30102_ON_OFF
     Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
@@ -93,18 +106,7 @@ void peripheral_init(void)
     ds18b20_convert_task_init();
     task_add(&m_ds18b20_convert_task,m_ds18b20_convert_task.Period);
 #endif
-
-#if MPU6050_ON_OFF
-    while(MPU_Init());                                                 //MPU6050 角速度，加速度传感器初始化
-    printf("MPU6050 Init Success\r\n");
-    while(mpu_dmp_init());
-
-    while(mpu_dmp_get_data(&fir_pitch,&fir_roll,&fir_yaw) != 0);
-    printf("DMP Init Success\r\n");
-    mpu6050_task_init();
-    task_add(&m_mpu6050_task,m_mpu6050_task.Period);
-#endif
     tim3_init((TIM_IT_TIME*10-1),7199);   //任务定时器
-    //tim2_init(MPU6050_IT_TIME*10-1,7199); //mpu6050定时器
+    tim2_init(MPU6050_IT_TIME*10-1,7199); //mpu6050定时器
 
 }

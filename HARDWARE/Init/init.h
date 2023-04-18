@@ -23,7 +23,7 @@
 
 #define BEEP_ON_OFF             0
 #define ESP_ON_OFF              0
-#define DS18B20_ON_OFF          0
+#define DS18B20_ON_OFF          1
 #define MAX30102_ON_OFF         0
 #define MPU6050_ON_OFF          1
 #define OLED_ON_OFF             1
@@ -32,7 +32,7 @@
 #define TIM4_ON_OFF             0
 #define FSM_ON_OFF              0
 
-#define MPU6050_IT_TIME         5
+#define MPU6050_IT_TIME         50
 
 typedef enum fsm{
     fsm_init_end = 1,
