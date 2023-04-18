@@ -135,9 +135,11 @@ void task_dispatch()
             left = m_task->Period-m_task->arrive;
             if(left == 0){                      //长周期任务到期
                 m_task->task();
-
+                printf("daaa\r\n");
                 m_task->arrive =0;  
             }else if(left < HIT_SLICE){       //长周期任务即将到期
+                if(m_task->priority == 2)
+                    printf("ds into list,idx:%d\r\n",hit_list_idx(left));
                 task_add(m_task,left);
             }
         }
@@ -146,7 +148,7 @@ void task_dispatch()
         m_task = container_of(Task_t,task_item,item);
         //if(m_task->priority != 8 && m_task->priority != 9 && m_task->priority != 1)
             //printf("task priority:%d\r\n",m_task->priority);
-        printf("task priority:%d\r\n",m_task->priority);
+        //printf("task priority:%d\r\n",m_task->priority);
         m_task->task();
         m_task->arrive = 0;
         task_add(m_task,m_task->Period);

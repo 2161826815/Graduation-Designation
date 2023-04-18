@@ -189,6 +189,7 @@ extern data_buff_t all_data;
 uint8_t OLED_DS18B20_Fresh;
 void ds18b20_read_task(void)
 {
+    printf("111111111111111111\r\n");
     float temp;
     temp = DS18B20_Read_Temp();
     all_data.temperature =  ((int)(temp*100))/(100.0);

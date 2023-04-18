@@ -107,6 +107,7 @@ void peripheral_init(void)
     task_add(&m_ds18b20_convert_task,m_ds18b20_convert_task.Period);
 #endif
     tim3_init((TIM_IT_TIME*10-1),7199);   //任务定时器
+#if MPU6050_ON_OFF
     tim2_init(MPU6050_IT_TIME*10-1,7199); //mpu6050定时器
-
+#endif
 }
