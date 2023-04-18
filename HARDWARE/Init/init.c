@@ -95,7 +95,7 @@ void peripheral_init(void)
     task_add(&m_esp8266_task,m_esp8266_task.Period);
     printf("ESP8266 Init Success\r\n");
 #endif
-    
+
 #if DS18B20_ON_OFF
     while(DS18B20_Init());                                           //DS18B20 温度传感器初始化
     //DS18B20_Convert();
