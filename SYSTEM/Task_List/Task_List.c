@@ -4,15 +4,14 @@
 #include "SysTick.h"
 #include "LED.h"
 
-list_item long_task = {
-    .next = &long_task,
-    .pre = &long_task,
-};
+extern volatile uint32_t tim_tick;
+uint32_t hit_list_idx(uint32_t time)
+{
+    return (tim_tick+time) & (HIT_SLICE-1);
+}
 
-list_item hit_task = {
-    .next = &hit_task,
-    .pre = &hit_task,
-};
+list_item long_task;
+list_item hit_task[HIT_MAX];
 
 void list_init(list_item* head)
 {
@@ -91,7 +90,6 @@ list_item* list_delete_tail(list_item *head)
     return del;
 }
 
-//栈next循环
 uint8_t list_add_tail(list_item* head,list_item *item)
 {
     if(is_head_valid(head)){
@@ -101,7 +99,6 @@ uint8_t list_add_tail(list_item* head,list_item *item)
 		return 0;
 }
 
-//队列 next循环
 uint8_t list_add_head(list_item* head,list_item *item)
 {
     if(is_head_valid(head)){
@@ -111,113 +108,47 @@ uint8_t list_add_head(list_item* head,list_item *item)
 		return 0;
 }
 
-void list_priority_sort(list_item* head)
-{
-    if(!head || !head->pre || !head->next){
-        return;
-    }
-    Task_t *a,*b;
-    list_item *i,*j,*k,*x,*y;
-
-    for(i = head->next->next; i != head; i = i->next){
-        for(j = i; j != head; j = j->pre){
-            a = container_of(Task_t,task_item,j);
-            b = container_of(Task_t,task_item,j->pre);
-            if((a->priority) < (b->priority)){
-                k = j;
-                x = j->pre->pre;
-                y = j->pre;
-                list_delete_item(j);
-                list_insert(k,x,y);
-            }
-        }
-    }
-
-    /* printf("priority ");
-    for(i = head->next; i != head; i = i->next){
-        a = container_of(Task_t,task_item,i);
-        printf("%d ",a->priority);
-    }
-    printf("\r\n"); */
-}
-
-//栈 从pre加
-void task_add(Task_t *task)
+//队列 从pre加
+void task_add(Task_t *task,uint32_t time)
 {
     list_delete_item(&task->task_item);
-    if(task->remain > HIT_TIME){
+    
+    if(time >= HIT_SLICE){
         list_add_tail(&long_task,&(task->task_item));
     }else{
-        list_add_tail(&hit_task,&(task->task_item));
+        list_add_tail(&hit_task[hit_list_idx(task->Period)],&(task->task_item));
     }
 }
 
-
-
-#if 1
 void task_dispatch()
 {
     list_item *item;
     list_item *n;
     Task_t *m_task;
-    list_for_each_next_safe(item,n,&long_task){
-        m_task = container_of(Task_t,task_item,item);
-            if(m_task->remain <= 0){    //任务到期
-                m_task->atomic = 1;             //原子执行
-                m_task->task();
-                LED_Toggle(1); //长周期任务切换
-                m_task->remain = m_task->Period;
-                task_add(m_task);
-                m_task->atomic = 0;
-            }else{
-                if(m_task->remain < HIT_TIME)     //即将到期
-                    task_add(m_task);
-                    LED_Toggle(3);  //只执行了一次
-                    delay_ms(50);
-                    continue;
-            }
-    }
-
-    list_priority_sort(&hit_task);   //击中链表优先级排序
-    list_for_each_next_safe(item,n,&hit_task){    //击中链表
-        m_task = container_of(Task_t,task_item,item);
-        if(m_task->priority != 1 && m_task->priority != 8 && m_task->priority != 9){
-            LED_Toggle(5);
-            //printf("task priority:%d\r\n",m_task->priority);
-        }
-        m_task->task();
-        LED_Toggle(1);  //击中任务切换
-        m_task->remain = m_task->Period;
-        task_add(m_task);
-    }
-}
-#endif
-#if 0
-void task_dispatch(list_item* head)
-{
-    list_item *item;
-    list_item *n;
-    Task_t *m_task;
-    list_for_each_next_safe(item,n,head){
-        m_task = container_of(Task_t,task_item,item);
-        m_task->remain = tim_get_tick()+m_task->Period;
-    }
-    while(1){
-        list_for_each_next_safe(item,n,head){
-            LED_Toggle(5);      //判断任务正在切换
+    uint32_t idx,left;
+    idx = hit_list_idx(0);
+    if(idx == 0){
+        list_for_each_next_safe(item,n,&long_task){
             m_task = container_of(Task_t,task_item,item);
-            if(m_task->Period > 0){
-                if(tim_get_tick() >= m_task->remain){
-                    m_task->task();
-                    m_task->remain = tim_get_tick()+m_task->Period;
-                }else{
-                    continue;
-                }
-            }else{
+            
+            m_task->arrive += HIT_SLICE;
+            left = m_task->Period-m_task->arrive;
+            if(left == 0){                      //长周期任务到期
                 m_task->task();
-            }  
+
+                m_task->arrive =0;  
+            }else if(left < HIT_SLICE){       //长周期任务即将到期
+                task_add(m_task,left);
+            }
         }
     }
+    list_for_each_next_safe(item,n,&hit_task[idx]){    //击中链表
+        m_task = container_of(Task_t,task_item,item);
+        //if(m_task->priority != 8 && m_task->priority != 9 && m_task->priority != 1)
+            //printf("task priority:%d\r\n",m_task->priority);
+        printf("task priority:%d\r\n",m_task->priority);
+        m_task->task();
+        m_task->arrive = 0;
+        task_add(m_task,m_task->Period);
+    }
 }
-#endif
-

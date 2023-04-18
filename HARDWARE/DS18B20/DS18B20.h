@@ -20,8 +20,6 @@ enum mode_cmd
     OUTPUT
 };
 
-#endif
-
 uint8_t DS18B20_Init(void);
 void DS18B20_Mode_Change(uint8_t mode_cmd);
 void DS18B20_Start(void);
@@ -34,3 +32,7 @@ void ds18b20_read_task_init(void);
 void ds18b20_convert_task_init(void);
 void DS18B20_Convert(void);
 void ds18b20_read_task(void);
+
+#endif
+
+

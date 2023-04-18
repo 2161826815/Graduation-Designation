@@ -19,17 +19,20 @@
 #include <stdlib.h>
 #include "TIM.h"
 #include "Task_List.h"
+#include "DS18B20.h"
 
 #define BEEP_ON_OFF             0
 #define ESP_ON_OFF              0
-#define DS18B20_ON_OFF          1
+#define DS18B20_ON_OFF          0
 #define MAX30102_ON_OFF         0
-#define MPU6050_ON_OFF          0
+#define MPU6050_ON_OFF          1
 #define OLED_ON_OFF             1
 #define TIM2_ON_OFF             0
 #define TIM3_ON_OFF             0
 #define TIM4_ON_OFF             0
 #define FSM_ON_OFF              0
+
+#define MPU6050_IT_TIME         5
 
 typedef enum fsm{
     fsm_init_end = 1,
@@ -52,17 +55,17 @@ typedef struct data_buff
     uint32_t IR;
 }data_buff_t;
 
-#define LED_Period              0
-#define LED2_Period             0
-#define DS18B20_READ_Period     750
-#define DS18B20_convert_Period  0
-#define OLED_DS18B20_Period     100
-#define OLED_MPU6050_Period     100
-#define OLED_MAX30102_Period    100
-#define OLED_Period             100
-#define MAX30102_Period         20
-#define MPU6050_Period          100
-#define ESP8266_Period          50
+#define LED_Period              20U
+#define LED2_Period             20U
+#define DS18B20_READ_Period     750U
+#define DS18B20_convert_Period  5U
+#define OLED_DS18B20_Period     100U
+#define OLED_MPU6050_Period     100U
+#define OLED_MAX30102_Period    100U
+#define OLED_Period             10U
+#define MAX30102_Period         20U
+#define MPU6050_Period          10U
+#define ESP8266_Period          50U
 
 
 void peripheral_init(void);

@@ -178,8 +178,8 @@ void da18b20_convert_task(void)
 
 void ds18b20_convert_task_init(void)
 {
-    m_ds18b20_convert_task.Period = DS18B20_convert_Period;
-    m_ds18b20_convert_task.remain = m_ds18b20_convert_task.Period;
+    m_ds18b20_convert_task.Period = Period_to_Tick(DS18B20_convert_Period);
+    m_ds18b20_convert_task.arrive = 0;
     m_ds18b20_convert_task.priority = 1;
     m_ds18b20_convert_task.task = &da18b20_convert_task;
 }
@@ -194,7 +194,6 @@ void ds18b20_read_task(void)
     all_data.temperature =  ((int)(temp*100))/(100.0);
     m_ds18b20_read_task.pri_data = 0;   //读取完成,发送转换指令
 
-    //printf("temp:%.2f\r\n",temp);
 #if BEEP_ON_OFF
     if(all_data.temperature > 38){
         BEEP_ON();
@@ -206,8 +205,8 @@ void ds18b20_read_task(void)
 }
 void ds18b20_read_task_init(void)
 {
-    m_ds18b20_read_task.Period = DS18B20_READ_Period;
-    m_ds18b20_read_task.remain = m_ds18b20_read_task.Period;
+    m_ds18b20_read_task.Period = Period_to_Tick(DS18B20_READ_Period);
+    m_ds18b20_read_task.arrive = 0;
     m_ds18b20_read_task.priority = 2;
     m_ds18b20_read_task.task = &ds18b20_read_task;
 }

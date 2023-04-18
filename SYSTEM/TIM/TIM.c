@@ -18,7 +18,7 @@ void tim2_init(uint16_t Period,uint16_t PSC)
     TIM2_NVIC_Struct.NVIC_IRQChannel = TIM2_IRQn;
     TIM2_NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
     TIM2_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
-    TIM2_NVIC_Struct.NVIC_IRQChannelSubPriority = 2,
+    TIM2_NVIC_Struct.NVIC_IRQChannelSubPriority = 0,
     NVIC_Init(&TIM2_NVIC_Struct);
 
     TIM_Cmd(TIM2,ENABLE);
@@ -27,12 +27,6 @@ void tim2_init(uint16_t Period,uint16_t PSC)
 //定时器频率为72000000/(xxx+1)
 //PWM频率为 定时器频率/period
 //TIM_SetCompare2(TIM3,xxx);//设置通道2占空比
-volatile uint32_t tim_tick = 0;
-uint32_t inline tim_get_tick(void)
-{
-    return tim_tick;
-}
-
 void tim3_init(uint16_t Period,uint16_t PSC)
 {  
     TIM_TimeBaseInitTypeDef TIM3_Base_Struct;
@@ -101,14 +95,13 @@ void tim4_init(uint16_t Period,uint16_t PSC)
     TIM4_NVIC_Struct.NVIC_IRQChannel = TIM4_IRQn;
     TIM4_NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
     TIM4_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
-    TIM4_NVIC_Struct.NVIC_IRQChannelSubPriority = 0,
+    TIM4_NVIC_Struct.NVIC_IRQChannelSubPriority = 2,
     NVIC_Init(&TIM4_NVIC_Struct);
     TIM_Cmd(TIM4,ENABLE);
 }
 
 
 //mpu6050
-extern data_buff_t all_data;
 void TIM2_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM2,TIM_IT_Update) != RESET){
@@ -116,39 +109,19 @@ void TIM2_IRQHandler(void)
     }
 }
 
+volatile uint32_t tim_tick = 0;
+uint32_t inline tim_get_tick(void)
+{
+    return tim_tick;
+}
 
-//任务定时器
-
-#if 0
 void TIM3_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM3,TIM_IT_Update) != RESET){
-            tim_tick += TIM_IT_TIME;
-        
+            ++tim_tick;
         TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
     }
 }
-#endif
-#if 1
-extern list_item long_task;
-void TIM3_IRQHandler(void)
-{
-    if(TIM_GetFlagStatus(TIM3,TIM_IT_Update) != RESET){
-            list_item *item;
-            list_item *n;
-            Task_t* m_task;
-            list_for_each_next_safe(item,n,&long_task){
-            m_task = container_of(Task_t,task_item,item);
-            
-            if(!m_task->atomic){ //任务在执行时不能减少时间片
-                m_task->remain -= HIT_TIME;
-			}else{
-            }
-        }
-        TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
-    }
-}
-#endif
 
 void TIM4_IRQHandler(void)
 {

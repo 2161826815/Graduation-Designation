@@ -268,8 +268,8 @@ void oled_ds18b20_task(void)
 
 void oled_ds18b20_task_init()
 {
-	m_oled_ds18b20_task.Period = OLED_DS18B20_Period;
-	m_oled_ds18b20_task.remain = m_oled_ds18b20_task.Period;
+	m_oled_ds18b20_task.Period = Period_to_Tick(OLED_DS18B20_Period);
+	m_oled_ds18b20_task.arrive = 0;
 	m_oled_ds18b20_task.priority = 6;
 	m_oled_ds18b20_task.task = &oled_ds18b20_task;
 }
@@ -368,8 +368,8 @@ void oled_mpu6050_task(void)
 
 void oled_mpu6050_task_init()
 {
-	m_oled_mpu6050_task.Period = OLED_MPU6050_Period;
-	m_oled_mpu6050_task.remain = m_oled_mpu6050_task.Period;
+	m_oled_mpu6050_task.Period = Period_to_Tick(OLED_MPU6050_Period);
+	m_oled_mpu6050_task.arrive = 0;
 	m_oled_mpu6050_task.priority = 5;
 	m_oled_mpu6050_task.task = &oled_mpu6050_task;
 }
@@ -389,8 +389,8 @@ void oled_max30102_task(void)
 
 void oled_max30102_task_init(void)
 {
-    m_oled_max30102_task.Period = OLED_Period;
-	m_oled_max30102_task.remain = m_oled_max30102_task.Period;
+    m_oled_max30102_task.Period = Period_to_Tick(OLED_MAX30102_Period);
+	m_oled_max30102_task.arrive =0;
 	m_oled_max30102_task.priority = 7;
     m_oled_max30102_task.task = &oled_max30102_task;
 }  

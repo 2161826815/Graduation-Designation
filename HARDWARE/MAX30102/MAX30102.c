@@ -160,8 +160,8 @@ void max30102_task(void)
 
 void max30102_task_init(void)
 {
-    m_max30102_task.Period = MAX30102_Period;
-    m_max30102_task.remain = m_max30102_task.Period;
+    m_max30102_task.Period = Period_to_Tick(MAX30102_Period);
+    m_max30102_task.arrive = 0;
     m_max30102_task.priority = 3;
     m_max30102_task.task = &max30102_task;
 }

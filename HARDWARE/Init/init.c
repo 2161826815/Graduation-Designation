@@ -4,9 +4,6 @@ extern float fir_pitch;
 extern float fir_roll;
 extern float fir_yaw;
 
-extern list_item long_task;
-extern list_item hit_task;
-
 data_buff_t all_data;
 /*
 priority config
@@ -25,20 +22,25 @@ extern Task_t m_oled_ds18b20_task;
 extern Task_t m_oled_mpu6050_task;
 extern Task_t m_oled_max30102_task;
 
-
+extern list_item long_task;
+extern list_item hit_task[HIT_MAX];
 
 void peripheral_init(void)
 {
+    uint8_t i;
     Debug_USART_init();
-
+    list_init(&long_task);
+    for(i=0;i<HIT_MAX;i++){
+        list_init(&hit_task[i]);
+    }
     sys_tick_init();
     LED_Init();
 
     //通过不断闪烁LED代表任务正在不断调度切换
-    led_task_init();
-    task_add(&m_led_task);
+    /* led_task_init();
+    task_add(&m_led_task,m_led_task.Period);
     led2_task_init();
-    task_add(&m_led2_task);
+    task_add(&m_led2_task,m_led2_task.Period); */
 
     Key_Init();
 
@@ -49,7 +51,7 @@ void peripheral_init(void)
     Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
     LED_ON(1);
     max30102_task_init();
-    task_add(&m_max30102_task);
+    task_add(&m_max30102_task,m_max30102_task.Period);
     printf("Max30102 Init Success\r\n");
 #endif
 
@@ -63,14 +65,33 @@ void peripheral_init(void)
 
 #if DS18B20_ON_OFF
     oled_ds18b20_task_init();
-    task_add(&m_oled_ds18b20_task);
+    task_add(&m_oled_ds18b20_task,m_oled_ds18b20_task.Period);
 #endif
 
 #if MPU6050_ON_OFF
     oled_mpu6050_task_init();
-    task_add(&m_oled_mpu6050_task);
+    task_add(&m_oled_mpu6050_task,m_oled_mpu6050_task.Period);
 #endif
 
+#endif
+
+#if ESP_ON_OFF
+    while(ESP8266_Init());                                           //ESP8266 WIFI模块初始化
+    LED_ON(5);
+    esp8266_task_init();
+    task_add(&m_esp8266_task,m_esp8266_task.Period);
+    printf("ESP8266 Init Success\r\n");
+#endif
+    
+#if DS18B20_ON_OFF
+    while(DS18B20_Init());                                           //DS18B20 温度传感器初始化
+    //DS18B20_Convert();
+    printf("DS18B20 Init Success\r\n");
+    ds18b20_read_task_init();
+    task_add(&m_ds18b20_read_task,m_ds18b20_read_task.Period);
+
+    ds18b20_convert_task_init();
+    task_add(&m_ds18b20_convert_task,m_ds18b20_convert_task.Period);
 #endif
 
 #if MPU6050_ON_OFF
@@ -81,30 +102,9 @@ void peripheral_init(void)
     while(mpu_dmp_get_data(&fir_pitch,&fir_roll,&fir_yaw) != 0);
     printf("DMP Init Success\r\n");
     mpu6050_task_init();
-    task_add(&m_mpu6050_task);
-
+    task_add(&m_mpu6050_task,m_mpu6050_task.Period);
 #endif
+    tim3_init((TIM_IT_TIME*10-1),7199);   //任务定时器
+    //tim2_init(MPU6050_IT_TIME*10-1,7199); //mpu6050定时器
 
-#if ESP_ON_OFF
-    while(ESP8266_Init());                                           //ESP8266 WIFI模块初始化
-    LED_ON(5);
-    esp8266_task_init();
-    task_add(&m_esp8266_task);
-    printf("ESP8266 Init Success\r\n");
-#endif
-    
-#if DS18B20_ON_OFF
-    while(DS18B20_Init());                                           //DS18B20 温度传感器初始化
-    //DS18B20_Convert();
-    printf("DS18B20 Init Success\r\n");
-    ds18b20_read_task_init();
-    task_add(&m_ds18b20_read_task);
-
-    ds18b20_convert_task_init();
-    task_add(&m_ds18b20_convert_task);
-
-#endif
-
-    tim3_init((HIT_TIME*10-1),7199);   //任务定时器
-    //tim2_init(99,7199);
 }

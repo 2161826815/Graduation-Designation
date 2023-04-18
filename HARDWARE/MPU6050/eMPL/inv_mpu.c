@@ -1076,7 +1076,7 @@ int mpu_set_accel_bias(const long *accel_bias)
  *  @return 0 if successful.
  */
 int mpu_reset_fifo(void)
-{
+{   
     unsigned char data;
 
     if (!(st.chip_cfg.sensors))
@@ -1771,10 +1771,10 @@ int mpu_read_fifo_stream(unsigned short length, unsigned char *data,
         return -1;
     if (!st.chip_cfg.sensors)
         return -1;
-
     if (i2c_read(st.hw->addr, st.reg->fifo_count_h, 2, tmp))
         return -1;
     fifo_count = (tmp[0] << 8) | tmp[1];
+  
     if (fifo_count < length) {
         more[0] = 0;
         return -1;
@@ -1788,7 +1788,7 @@ int mpu_read_fifo_stream(unsigned short length, unsigned char *data,
             return -2;
         }
     }
-
+    
     if (i2c_read(st.hw->addr, st.reg->fifo_r_w, length, data))
         return -1;
     more[0] = fifo_count / length - 1;
