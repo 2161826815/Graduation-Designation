@@ -18,7 +18,7 @@ void tim2_init(uint16_t Period,uint16_t PSC)
     TIM2_NVIC_Struct.NVIC_IRQChannel = TIM2_IRQn;
     TIM2_NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
     TIM2_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
-    TIM2_NVIC_Struct.NVIC_IRQChannelSubPriority = 0,
+    TIM2_NVIC_Struct.NVIC_IRQChannelSubPriority = 1,
     NVIC_Init(&TIM2_NVIC_Struct);
 
     TIM_Cmd(TIM2,ENABLE);
@@ -47,7 +47,7 @@ void tim3_init(uint16_t Period,uint16_t PSC)
     TIM3_NVIC_Struct.NVIC_IRQChannel = TIM3_IRQn;
     TIM3_NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
     TIM3_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
-    TIM3_NVIC_Struct.NVIC_IRQChannelSubPriority = 1,
+    TIM3_NVIC_Struct.NVIC_IRQChannelSubPriority = 2,
     NVIC_Init(&TIM3_NVIC_Struct);
     TIM_Cmd(TIM3,ENABLE);
 }
@@ -95,7 +95,7 @@ void tim4_init(uint16_t Period,uint16_t PSC)
     TIM4_NVIC_Struct.NVIC_IRQChannel = TIM4_IRQn;
     TIM4_NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
     TIM4_NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
-    TIM4_NVIC_Struct.NVIC_IRQChannelSubPriority = 2,
+    TIM4_NVIC_Struct.NVIC_IRQChannelSubPriority = 3,
     NVIC_Init(&TIM4_NVIC_Struct);
     TIM_Cmd(TIM4,ENABLE);
 }
@@ -107,9 +107,8 @@ void TIM2_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM2,TIM_IT_Update) != RESET){
 #if MPU6050_ON_OFF
-        //mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw);
         while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
-        //printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",all_data.pitch,all_data.roll,all_data.yaw);
+        LED_Toggle(1);
 #endif
         TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
     }
@@ -124,6 +123,7 @@ uint32_t inline tim_get_tick(void)
 void TIM3_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM3,TIM_IT_Update) != RESET){
+            //tim_tick += TIM_IT_TIME;
             ++tim_tick;
         TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
     }

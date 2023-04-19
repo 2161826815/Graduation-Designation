@@ -87,6 +87,10 @@ void USART1_IRQHandler(void)         //Problem 1
     USART_SendData(ESP8266_USARTX,temp);//串口调试ESP
     USART_ClearFlag(Debug_Usart, USART_FLAG_RXNE);
   }
+  if(USART_GetFlagStatus(Debug_Usart,USART_IT_TC) != RESET){
+    LED_Toggle(3);
+    USART_ClearFlag(Debug_Usart, USART_IT_TC);
+  }
 }
 
 

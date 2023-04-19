@@ -31,7 +31,7 @@ void Max30102_Init(void)
     NVIC_Struct.NVIC_IRQChannel = EXTI9_5_IRQn;
     NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_Struct.NVIC_IRQChannelSubPriority = 3;
+    NVIC_Struct.NVIC_IRQChannelSubPriority = 0;
     NVIC_Init(&NVIC_Struct);
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO,ENABLE);
@@ -155,7 +155,7 @@ extern data_buff_t all_data;
 void max30102_task(void)
 {
     Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
-    printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
+    DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
 }
 
 void max30102_task_init(void)

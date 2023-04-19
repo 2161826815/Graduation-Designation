@@ -426,7 +426,7 @@ void GUI_ShowChar(u8 x,u8 y,u8 chr,u8 Char_Size,u8 mode)
 	}else{
 		return;
 	}
-	OLED_Display();
+	//OLED_Display();
 }
 
 /*****************************************************************************

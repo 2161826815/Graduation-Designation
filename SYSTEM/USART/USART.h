@@ -4,7 +4,8 @@
 
 #include "stm32f10x.h"
 #include <stdio.h>
-
+#include <stdarg.h>
+#include "init.h"
 
 #define Debug_Usart_RCC_GPIO_Port     RCC_APB2Periph_GPIOA
 #define Debug_Usart_RCC_Port          RCC_APB2Periph_USART1
@@ -34,5 +35,5 @@ void Debug_USART_init(void);
 void Debug_USART_Send_Byte(USART_TypeDef* USARTX,uint8_t data);
 void Debug_USART_Send_Array(USART_TypeDef* USARTX,uint8_t* array,uint8_t num);
 void Debug_USART_Send_Str(USART_TypeDef* USARTX,uint8_t* str);
-
+void DMA_Printf(const char *format,...);
 #endif

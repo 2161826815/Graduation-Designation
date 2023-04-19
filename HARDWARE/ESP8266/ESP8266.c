@@ -65,17 +65,17 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
         USART_Send_str(ESP8266_USARTX,cmd);
         while(!DMA_TC_STATUS);
         if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
-            printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
+            DMA_Printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
             
-            printf("Recieve OK\r\n");
+            DMA_Printf("Recieve OK\r\n");
             return 0;
         }else{
-            printf("Recieve Fail\r\n");
+            DMA_Printf("Recieve Fail\r\n");
         }
         
         ESP8266_RCV_Clear();
         DMA_TC_STATUS = 0;
-        printf("2adasdas\r\n");
+        DMA_Printf("2adasdas\r\n");
         delay_ms(1000);
     }
 #endif
@@ -142,7 +142,7 @@ uint8_t ESP8266_Pub_Data(float data,int type)
 1,0\r\n",data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub Temperature Success\r\n");
+            DMA_Printf("Pub Temperature Success\r\n");
         }else{
             return 1;
         }
@@ -157,7 +157,7 @@ uint8_t ESP8266_Pub_Data(float data,int type)
 1,0\r\n",(uint32_t)data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub HR Success\r\n");
+            DMA_Printf("Pub HR Success\r\n");
         }else{
             return 1;
         }
@@ -172,7 +172,7 @@ uint8_t ESP8266_Pub_Data(float data,int type)
 1,0\r\n",(uint32_t)data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub SPO2 Success\r\n");
+            DMA_Printf("Pub SPO2 Success\r\n");
         }else{
             return 1;
         }  

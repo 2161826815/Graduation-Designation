@@ -7,9 +7,9 @@
 
 #define LIST_NULL   ((void*)0)
 
-#define HIT_MAX         (16)    //HIT链表长度
-#define TIM_IT_TIME     (5)     //调度中断片
-#define HIT_SLICE       (16)    //击中片
+#define HIT_LIST_TICK_MAX   (16)    //HIT链表长度
+#define TIM_IT_TIME         (3)     //定时器调度中断片
+
 
 #define Period_to_Tick(p)  ((((uint32_t)(p) >= TIM_IT_TIME)) ? ((uint32_t)(p)/TIM_IT_TIME) : 1U)
 

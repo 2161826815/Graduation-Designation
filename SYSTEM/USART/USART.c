@@ -1,5 +1,6 @@
 #include "USART.h"
 
+uint8_t DBG_Buffer[128];
 void Debug_USART_init(void)
 {
     GPIO_InitTypeDef gpio_struct;
@@ -29,17 +30,44 @@ void Debug_USART_init(void)
     USART_Init(Debug_Usart,&usart_struct);
 
     //NVIC初始化
-    NVIC_InitTypeDef nvic_struct;
+    NVIC_InitTypeDef NVIC_Struct;
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-    nvic_struct.NVIC_IRQChannel = Debug_Usart_IRQ_Channel;
-    nvic_struct.NVIC_IRQChannelCmd = ENABLE;
-    nvic_struct.NVIC_IRQChannelPreemptionPriority = 1;
-    nvic_struct.NVIC_IRQChannelSubPriority = 3;
-    NVIC_Init(&nvic_struct);
+    NVIC_Struct.NVIC_IRQChannel = Debug_Usart_IRQ_Channel;
+    NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_Struct.NVIC_IRQChannelSubPriority = 3;
+    NVIC_Init(&NVIC_Struct);
 
+    //USART_ITConfig(USART1, USART_IT_TC,ENABLE); //发送完成中断
     USART_ITConfig(Debug_Usart,USART_IT_RXNE,ENABLE); //使能串口接收中断
     USART_Cmd(Debug_Usart,ENABLE); //使能串口
 
+    DMA_InitTypeDef DNA_Struct;
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1,ENABLE);
+    DMA_DeInit(DMA1_Channel4);
+
+    DNA_Struct.DMA_BufferSize = 256;
+    DNA_Struct.DMA_DIR = DMA_DIR_PeripheralDST;
+    DNA_Struct.DMA_M2M = DMA_M2M_Disable;
+    DNA_Struct.DMA_MemoryBaseAddr = (uint32_t)DBG_Buffer;
+    DNA_Struct.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    DNA_Struct.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    DNA_Struct.DMA_Mode = DMA_Mode_Normal;
+    DNA_Struct.DMA_PeripheralBaseAddr = (uint32_t)&USART1->DR;
+    DNA_Struct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    DNA_Struct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    DNA_Struct.DMA_Priority = DMA_Priority_VeryHigh;
+    DMA_Init(DMA1_Channel4,&DNA_Struct);
+    USART_DMACmd(Debug_Usart,USART_DMAReq_Tx,ENABLE);
+    //DMA_Cmd(DMA1_Channel4,ENABLE);    打印的时候再开
+
+    NVIC_Struct.NVIC_IRQChannel = DMA1_Channel4_IRQn;
+    NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_Struct.NVIC_IRQChannelSubPriority = 1;
+    NVIC_Init(&NVIC_Struct);
+    DMA_ITConfig(DMA1_Channel4,DMA_IT_TC,ENABLE);
+    
 }
 
 void Debug_USART_Send_Byte(USART_TypeDef* USARTX,uint8_t data)
@@ -67,7 +95,8 @@ void Debug_USART_Send_Str(USART_TypeDef* USARTX,uint8_t* str)
     while(USART_GetFlagStatus(USARTX,USART_FLAG_TC) == RESET);
 }
 
-//输出重定向使用printf函数
+//使用DMA打印
+/* //输出重定向使用printf函数
 int fputc(int ch,FILE* f)
 {
     USART_SendData(Debug_Usart,(uint8_t)ch);
@@ -75,7 +104,7 @@ int fputc(int ch,FILE* f)
     while(USART_GetFlagStatus(Debug_Usart,USART_FLAG_TXE) == RESET);
 
     return ch;
-}
+} */
 
 //输入重定向使用scanf函数
 int fgetc(FILE* f)
@@ -84,3 +113,39 @@ int fgetc(FILE* f)
 
     return (int)(USART_ReceiveData(Debug_Usart));
 }
+
+static uint8_t DMA_STATUS;
+uint16_t USART1_SendBuffer(const char* buffer, uint16_t length)
+{
+	if( (buffer==NULL) || (length==0) ){
+		return 0;
+	}
+ 
+	DMA_Cmd(DMA1_Channel4, DISABLE);
+	DMA_SetCurrDataCounter(DMA1_Channel4, length);
+	DMA_Cmd(DMA1_Channel4, ENABLE);
+	while(DMA_STATUS);
+    DMA_STATUS = 1;
+	return length;
+}
+
+
+void DMA_Printf(const char *format,...)
+{
+    uint32_t length;
+	va_list args;
+ 
+	va_start(args, format);
+	length = vsnprintf((char*)DBG_Buffer, sizeof(DBG_Buffer), (char*)format, args);
+	va_end(args);
+	USART1_SendBuffer((const char*)DBG_Buffer,length);
+}
+
+void DMA1_Channel4_IRQHandler(void)
+{
+    if(DMA_GetITStatus(DMA1_IT_TC4)!=RESET){
+		DMA_STATUS = 0;
+		DMA_ClearITPendingBit(DMA1_IT_TC4);
+    }
+}
+

@@ -152,10 +152,11 @@ uint8_t MPU_Get_Accelerometer(short *ax, short *ay, short *az)
 }
 
 extern data_buff_t all_data;
+
 void mpu6050_task(void)
 {	
 	while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
-    printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",all_data.pitch,all_data.roll,all_data.yaw);
+	DMA_Printf("pitch:%.2f,roll:%.2f,yaw:%.2f\r\n",all_data.pitch,all_data.roll,all_data.yaw);
 	if(all_data.pitch !=0 && all_data.roll!= 0 && all_data.yaw != 0){
 		if(all_data.pitch-fir_pitch > 30 || all_data.pitch-fir_pitch < -30 ||	\
 		 all_data.roll-fir_roll > 30 || all_data.roll-fir_roll < -30){
@@ -166,7 +167,6 @@ void mpu6050_task(void)
 	}else{
 		LED_OFF(3);
 	}
-
 }
 
 void mpu6050_task_init(void)
@@ -183,7 +183,7 @@ extern uint8_t MPU_IT_STATUS;
 	if(EXTI_GetITStatus(EXTI_Line1) == SET){
 		if(MPU_IT_STATUS){
 			while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
-    		printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",all_data.pitch,all_data.roll,all_data.yaw);
+    		DMA_Printf("pitch:%.2f roll:%.2f yal:%.2f \r\n",all_data.pitch,all_data.roll,all_data.yaw);
 		}
     	EXTI_ClearITPendingBit(EXTI_Line8);
   	}
