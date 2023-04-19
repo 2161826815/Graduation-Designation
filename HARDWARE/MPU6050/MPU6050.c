@@ -12,7 +12,7 @@ float fir_yaw;
 uint8_t MPU_Init(void)
 {
 	uint8_t ret_addr,res;
-
+#if 0
 	GPIO_InitTypeDef GPIO_InitStructure;
 	EXTI_InitTypeDef EXTI_Struct;
 	NVIC_InitTypeDef NVIC_Struct;
@@ -38,12 +38,13 @@ uint8_t MPU_Init(void)
 	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
 	NVIC_Struct.NVIC_IRQChannelSubPriority = 0;
 	NVIC_Init(&NVIC_Struct);
+#endif
 
 	Soft_IIC_Init();
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X80); // 复位MPU6050
 	delay_ms(100);
-	Soft_IIC_Write_One_Byte(MPU_ADDR,MPU_INT_EN_REG,0x01);  	//开启FIFO中断
-	Soft_IIC_Write_One_Byte(MPU_ADDR,MPU_INTBP_CFG_REG,0x80);	//low trigger
+	//Soft_IIC_Write_One_Byte(MPU_ADDR,MPU_INT_EN_REG,0x01);  	//开启FIFO中断
+	//Soft_IIC_Write_One_Byte(MPU_ADDR,MPU_INTBP_CFG_REG,0x80);	//low trigger
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X00); // 唤醒MPU6050
 	MPU_Set_Gyro_Fsr(3);										// 陀螺仪传感器2000dps
 	MPU_Set_Accel_Fsr(0);										// 加速度传感器±2g
@@ -54,8 +55,8 @@ uint8_t MPU_Init(void)
 	Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_INTBP_CFG_REG, 0X80); // INT低电平有效
 
 	res = Soft_IIC_Read_Bytes(MPU_ADDR,MPU_DEVICE_ID_REG,1,&ret_addr);
-	if (res == 0 && ret_addr == MPU_ADDR) // ret_addr = MPU_ADDR = 0x68
-	{
+	if (res == 0 && ret_addr == MPU_ADDR){ // ret_addr = MPU_ADDR = 0x68
+	
 		Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_PWR_MGMT1_REG, 0X01); // 设置CLKSEL,PLL X轴为参考
 		Soft_IIC_Write_One_Byte(MPU_ADDR, MPU_PWR_MGMT2_REG, 0X00); // 加速度与陀螺仪都工作
 		MPU_Set_Rate(50);											// 设置采样率为50Hz
@@ -155,9 +156,10 @@ extern data_buff_t all_data;
 
 void mpu6050_task(void)
 {	
-	while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
-	DMA_Printf("pitch:%.2f,roll:%.2f,yaw:%.2f\r\n",all_data.pitch,all_data.roll,all_data.yaw);
-	if(all_data.pitch !=0 && all_data.roll!= 0 && all_data.yaw != 0){
+	mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw);
+	//printf("pitch:%.2f,roll:%.2f,yaw:%.2f\r\n",all_data.pitch,all_data.roll,all_data.yaw);
+	//DMA_Printf("pitch:%.2f,roll:%.2f,yaw:%.2f\r\n",all_data.pitch,all_data.roll,all_data.yaw);
+	/* if(all_data.pitch !=0 && all_data.roll!= 0 && all_data.yaw != 0){
 		if(all_data.pitch-fir_pitch > 30 || all_data.pitch-fir_pitch < -30 ||	\
 		 all_data.roll-fir_roll > 30 || all_data.roll-fir_roll < -30){
 			BEEP_ON();
@@ -166,7 +168,7 @@ void mpu6050_task(void)
 		}
 	}else{
 		LED_OFF(3);
-	}
+	} */
 }
 
 void mpu6050_task_init(void)

@@ -121,6 +121,8 @@ void task_add(Task_t *task,uint32_t time)
 
 void task_dispatch()
 {
+    LED_Toggle(1);
+    //DMA_Printf("1\r\n");
     list_item *item;
     list_item *n;
     Task_t *m_task;
@@ -136,13 +138,14 @@ void task_dispatch()
                 m_task->arrive =0;  
             }else if(left < HIT_LIST_TICK_MAX){         //长周期任务即将到期
                 task_add(m_task,left);
-                //DMA_Printf("period:%d\r\n",m_task->Period);
+                DMA_Printf("period:%d\r\n",m_task->Period);
             }
         }
     }
     list_for_each_next_safe(item,n,&hit_task[idx]){    //击中链表
         m_task = container_of(Task_t,task_item,item);
-        DMA_Printf("Period:%d\r\n",m_task->Period);
+        //printf("Period:%d\r\n",m_task->Period);
+        //DMA_Printf("Period:%d\r\n",m_task->Period);
         m_task->task();
         m_task->arrive = 0;
         task_add(m_task,m_task->Period);

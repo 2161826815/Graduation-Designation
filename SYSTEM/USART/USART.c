@@ -96,7 +96,7 @@ void Debug_USART_Send_Str(USART_TypeDef* USARTX,uint8_t* str)
 }
 
 //使用DMA打印
-/* //输出重定向使用printf函数
+//输出重定向使用printf函数
 int fputc(int ch,FILE* f)
 {
     USART_SendData(Debug_Usart,(uint8_t)ch);
@@ -104,7 +104,7 @@ int fputc(int ch,FILE* f)
     while(USART_GetFlagStatus(Debug_Usart,USART_FLAG_TXE) == RESET);
 
     return ch;
-} */
+}
 
 //输入重定向使用scanf函数
 int fgetc(FILE* f)

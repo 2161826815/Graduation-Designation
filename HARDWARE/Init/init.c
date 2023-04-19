@@ -128,14 +128,15 @@ void task_looper(void)
     tim3_init((TIM_IT_TIME*10-1),7199);   //启动任务定时器
 
     while(1){
-        cur_tick = tim_get_tick();
-        if(cur_tick != pre_tick){  
-            pre_tick++;
-            task_dispatch();
-        }else{
-            /*
-                Wait Task
-            */
-        }
+        task_dispatch();
+        //cur_tick = tim_get_tick();
+        //if(cur_tick != pre_tick){  
+        //    pre_tick++;
+        //    task_dispatch();
+        //}else{
+        //    /*
+        //        Wait Task
+        //    */
+        //}
     } 
 }
