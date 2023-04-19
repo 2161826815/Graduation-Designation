@@ -1,5 +1,0 @@
-Change Component Footprint: Designator=RESET Old Footprint=TSW SMD-3*6*5 New Footprint=TSW SMD-6*6*5
-Change Component Designator: OldDesignator=RESET NewDesignator=SW1
-Change Component Designator: OldDesignator=USB NewDesignator=U1
-Added Member To Class: ClassName=Sheet1 Member=Component U2 STM32F103C8T6
-Added Room: Name=Sheet1
