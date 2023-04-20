@@ -36,6 +36,14 @@ void peripheral_init(void)
     Key_Init();
 
     BEEP_Init();
+    
+#if MAX30102_ON_OFF
+    Max30102_Init();
+    task_add(&m_max30102_task,m_max30102_task.period);
+
+    DMA_Printf("Max30102 Init Success\r\n");
+#endif
+
 #if MPU6050_ON_OFF
 
     while(MPU_Init())
@@ -47,13 +55,6 @@ void peripheral_init(void)
 
     task_add(&m_mpu6050_task,m_mpu6050_task.period);
 
-#endif
-
-#if MAX30102_ON_OFF
-    Max30102_Init();
-    task_add(&m_max30102_task,m_max30102_task.period);
-
-    DMA_Printf("Max30102 Init Success\r\n");
 #endif
 
 #if OLED_ON_OFF

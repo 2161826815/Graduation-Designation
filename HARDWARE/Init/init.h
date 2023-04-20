@@ -24,7 +24,7 @@
 #define BEEP_ON_OFF             0
 #define ESP_ON_OFF              0
 #define DS18B20_ON_OFF          1
-#define MAX30102_ON_OFF         0
+#define MAX30102_ON_OFF         1
 #define MPU6050_ON_OFF          1
 #define OLED_ON_OFF             1
 #define TIM2_ON_OFF             0
@@ -59,7 +59,7 @@ typedef struct data_buff
 #define DS18B20_CONVERT_Period  (5U)      //√
 #define OLED_REFRESH_Period     (50U)     //√
 #define OLED_CALCU_Period       (20U)     //√
-#define MAX30102_Period         (10U)
+#define MAX30102_Period         (1000U)
 #define MPU6050_Period          (30U)     //√
 #define ESP8266_Period          (50U)
 

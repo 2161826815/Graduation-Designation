@@ -24,10 +24,10 @@ void Max30102_Init(void)
     GPIO_Init(MAX30102_IT_Port,&GPIO_InitStruct);
 
     NVIC_InitTypeDef NVIC_Struct;
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
     NVIC_Struct.NVIC_IRQChannel = EXTI9_5_IRQn;
     NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_Struct.NVIC_IRQChannelSubPriority = 0;
     NVIC_Init(&NVIC_Struct);
 
@@ -147,7 +147,8 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
 extern data_buff_t all_data;
 void max30102_task(void)
 {
-    Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
-    DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
+    LED_Toggle(4);
+    //Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
+    //DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
 }
 
