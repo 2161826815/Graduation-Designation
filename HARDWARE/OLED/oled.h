@@ -28,6 +28,6 @@ void OLED_Set_Pixel(unsigned char x, unsigned char y,unsigned char color);
 void OLED_Display(void);
 void OLED_Clear(unsigned dat);
 void OLED_WR_large_Bytes(unsigned char*dat,unsigned cmd,uint16_t num);
-void oled_calcu_Buff_task_init(void);
-void oled_refresh_init(void);
+void oled_calcu_buffer_task(void);
+void oled_refresh_task(void);
 #endif

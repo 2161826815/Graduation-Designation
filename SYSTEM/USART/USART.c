@@ -9,7 +9,6 @@ void Debug_USART_init(void)
     RCC_APB2PeriphClockCmd(Debug_Usart_RCC_GPIO_Port,ENABLE);
     RCC_APB2PeriphClockCmd(Debug_Usart_RCC_Port,ENABLE);
 
-    //GPIO初始化
     gpio_struct.GPIO_Pin = Debug_Usart_GPIO_Rx_Pin;
     gpio_struct.GPIO_Mode = Debug_Usart_GPIO_Rx_Mode;
     gpio_struct.GPIO_Speed = Debug_Usart_GPIO_Speed;
@@ -19,8 +18,6 @@ void Debug_USART_init(void)
     gpio_struct.GPIO_Mode = Debug_Usart_GPIO_Tx_Mode;
     GPIO_Init(Debug_Usart_GPIO_Port,&gpio_struct);
 
-
-    //串口初始化
     usart_struct.USART_BaudRate = Debug_Usart_BaudRate;
     usart_struct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     usart_struct.USART_Mode = Debug_Usart_Mode;
@@ -29,7 +26,6 @@ void Debug_USART_init(void)
     usart_struct.USART_WordLength = Debug_Usart_WordLenth;
     USART_Init(Debug_Usart,&usart_struct);
 
-    //NVIC初始化
     NVIC_InitTypeDef NVIC_Struct;
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     NVIC_Struct.NVIC_IRQChannel = Debug_Usart_IRQ_Channel;
@@ -38,9 +34,8 @@ void Debug_USART_init(void)
     NVIC_Struct.NVIC_IRQChannelSubPriority = 3;
     NVIC_Init(&NVIC_Struct);
 
-    //USART_ITConfig(USART1, USART_IT_TC,ENABLE); //发送完成中断
-    USART_ITConfig(Debug_Usart,USART_IT_RXNE,ENABLE); //使能串口接收中断
-    USART_Cmd(Debug_Usart,ENABLE); //使能串口
+    USART_ITConfig(Debug_Usart,USART_IT_RXNE,ENABLE);
+    USART_Cmd(Debug_Usart,ENABLE);
 
     DMA_InitTypeDef DNA_Struct;
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1,ENABLE);
@@ -59,7 +54,6 @@ void Debug_USART_init(void)
     DNA_Struct.DMA_Priority = DMA_Priority_VeryHigh;
     DMA_Init(DMA1_Channel4,&DNA_Struct);
     USART_DMACmd(Debug_Usart,USART_DMAReq_Tx,ENABLE);
-    //DMA_Cmd(DMA1_Channel4,ENABLE);    打印的时候再开
 
     NVIC_Struct.NVIC_IRQChannel = DMA1_Channel4_IRQn;
     NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
@@ -78,8 +72,7 @@ void Debug_USART_Send_Byte(USART_TypeDef* USARTX,uint8_t data)
 
 void Debug_USART_Send_Array(USART_TypeDef* USARTX,uint8_t* array,uint8_t num)
 {
-    uint8_t i;
-    for(i=0;i<num;i++){
+    for(uint8_t i=0;i<num;i++){
         Debug_USART_Send_Byte(USARTX,*array++);
     }
     while(USART_GetFlagStatus(USARTX,USART_FLAG_TC) == RESET);
@@ -88,15 +81,13 @@ void Debug_USART_Send_Array(USART_TypeDef* USARTX,uint8_t* array,uint8_t num)
 void Debug_USART_Send_Str(USART_TypeDef* USARTX,uint8_t* str)
 {
     uint8_t i=0;
-    while(*(str+i) != '\0'){
-        Debug_USART_Send_Byte(USARTX,*(str+i));
+    while(*(str + i) != '\0'){
+        Debug_USART_Send_Byte(USARTX,*(str + i));
         i++;
     }
     while(USART_GetFlagStatus(USARTX,USART_FLAG_TC) == RESET);
 }
 
-//使用DMA打印
-//输出重定向使用printf函数
 int fputc(int ch,FILE* f)
 {
     USART_SendData(Debug_Usart,(uint8_t)ch);
@@ -106,18 +97,12 @@ int fputc(int ch,FILE* f)
     return ch;
 }
 
-//输入重定向使用scanf函数
-int fgetc(FILE* f)
-{
-    while(USART_GetFlagStatus(Debug_Usart,USART_FLAG_RXNE) == RESET);
 
-    return (int)(USART_ReceiveData(Debug_Usart));
-}
 
 static uint8_t DMA_STATUS;
 uint16_t USART1_SendBuffer(const char* buffer, uint16_t length)
 {
-	if( (buffer==NULL) || (length==0) ){
+	if( (buffer == NULL) || (length == 0) ){
 		return 0;
 	}
  

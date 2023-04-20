@@ -2,14 +2,11 @@
 #include "soft_iic.h"
 #include "Task_List.h"
 #include "init.h"
+
 uint32_t IR_Buffer[500];
 uint32_t RED_Buffer[500];
 int32_t IR_Buffrt_Length;
 Task_t m_max30102_task;
-
-
-
-#define USE_Soft_I2C 0
 
 void Max30102_Reset(void)
 {
@@ -43,12 +40,8 @@ void Max30102_Init(void)
     EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
     EXTI_Init(&EXTI_InitStruct);
     
-    
-#if USE_Soft_I2C
-    Soft_IIC_Init();
-#else
     I2C_Config();
-#endif
+
     Max30102_Reset();
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_1_rigister,0xC0,1);  //Enable A_FULL and PPG_RDY
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_wr_ptr_rigister,0x00,1);         //Write_prt reset
@@ -158,10 +151,3 @@ void max30102_task(void)
     DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
 }
 
-void max30102_task_init(void)
-{
-    m_max30102_task.Period = Period_to_Tick(MAX30102_Period);
-    m_max30102_task.arrive = 0;
-    m_max30102_task.priority = 3;
-    m_max30102_task.task = &max30102_task;
-}

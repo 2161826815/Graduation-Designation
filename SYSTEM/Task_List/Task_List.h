@@ -3,13 +3,11 @@
 
 #include "stm32f10x.h"
 #include <stdio.h>
-#include <stdbool.h>
 
 #define LIST_NULL   ((void*)0)
 
-#define HIT_LIST_TICK_MAX   (16)    //HIT链表长度
-#define TIM_IT_TIME         (5)     //定时器调度中断片
-
+#define HIT_LIST_TICK_MAX   (16)
+#define TIM_IT_TIME         (5)
 
 #define Period_to_Tick(p)  ((((uint32_t)(p) >= TIM_IT_TIME)) ? ((uint32_t)(p)/TIM_IT_TIME) : 1U)
 
@@ -20,13 +18,22 @@ typedef struct list_item{
 
 typedef struct Task{
     void (*task)(void);
-    uint32_t Period;
+    uint32_t period;
     uint32_t arrive;
-    list_item task_item;
-    bool atomic;
-    uint8_t priority;
+    list_item item;
+    uint8_t id;
     uint32_t pri_data;
 }Task_t;
+
+#define TASK_CTOR(_TASK, _PERIOD, _TASK_ID) {   \
+        .task = (_TASK),                        \
+        .period = (_PERIOD),                    \
+        .arrive = 0,                            \
+        .item.next = LIST_NULL,                 \
+        .item.pre  = LIST_NULL,                 \
+        .id = (_TASK_ID),                       \
+        .pri_data = 0,                          \
+    }
 
 #define container_of(type,mem,ptr) \
     ((type*)((char*)ptr - (char*)(&((type*)0)->mem)))
@@ -43,4 +50,5 @@ typedef struct Task{
 void list_init(list_item* head);
 void task_add(Task_t *task,uint32_t time);
 void task_dispatch(void);
+uint32_t hit_list_idx(uint32_t time);
 #endif

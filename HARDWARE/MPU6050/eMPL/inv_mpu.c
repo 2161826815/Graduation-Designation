@@ -23,7 +23,7 @@
  * reg_int_cb(void (*cb)(void), unsigned char port, unsigned char pin)
  * labs(long x)
  * fabsf(float x)
- * min(int a, int b)
+ * my_min(int a, int b)
  */
 #if defined MOTION_DRIVER_TARGET_MSP430
 //#include "msp430.h"
@@ -45,7 +45,7 @@
 /* labs is already defined by TI's toolchain. */
 /* fabs is for doubles. fabsf is for floats. */
 #define fabs        fabsf
-#define min(a,b) ((a<b)?a:b)
+#define my_min(a,b) ((a<b)?a:b)
 #elif defined EMPL_TARGET_MSP430
 #include "msp430.h"
 #include "msp430_i2c.h"
@@ -66,7 +66,7 @@ static inline int reg_int_cb(struct int_param_s *int_param)
 /* labs is already defined by TI's toolchain. */
 /* fabs is for doubles. fabsf is for floats. */
 #define fabs        fabsf
-#define min(a,b) ((a<b)?a:b)
+#define my_min(a,b) ((a<b)?a:b)
 #elif defined EMPL_TARGET_UC3L0
 /* Instead of using the standard TWI driver from the ASF library, we're using
  * a TWI driver that follows the slave address + register address convention.
@@ -273,10 +273,10 @@ struct test_s {
     unsigned char reg_accel_fsr;
     unsigned short wait_ms;
     unsigned char packet_thresh;
-    float min_dps;
+    float my_min_dps;
     float max_dps;
     float max_gyro_var;
-    float min_g;
+    float my_min_g;
     float max_g;
     float max_accel_var;
 };
@@ -531,10 +531,10 @@ const struct hw_s hw={
 //    .reg_accel_fsr  = 0x18, /* 16g. */
 //    .wait_ms        = 50,
 //    .packet_thresh  = 5,    /* 5% */
-//    .min_dps        = 10.f,
+//    .my_min_dps        = 10.f,
 //    .max_dps        = 105.f,
 //    .max_gyro_var   = 0.14f,
-//    .min_g          = 0.3f,
+//    .my_min_g          = 0.3f,
 //    .max_g          = 0.95f,
 //    .max_accel_var  = 0.14f
 //};
@@ -547,10 +547,10 @@ const struct test_s test={
 0x18,			//	reg_accel_fsr
 50,				//	wait_ms
 5,				//	packet_thresh
-10.0f,			 //	min_dps
+10.0f,			 //	my_min_dps
 105.0f,			 //	max_dps
 0.14f,			//	max_gyro_var
-0.3f,		   //	min_g
+0.3f,		   //	my_min_g
 0.95f,		   //	max_g
 0.14f		   //	max_accel_var
 };
@@ -635,10 +635,10 @@ const struct test_s test = {
     .reg_accel_fsr  = 0x18, /* 16g. */
     .wait_ms        = 50,
     .packet_thresh  = 5,    /* 5% */
-    .min_dps        = 10.f,
+    .my_min_dps        = 10.f,
     .max_dps        = 105.f,
     .max_gyro_var   = 0.14f,
-    .min_g          = 0.3f,
+    .my_min_g          = 0.3f,
     .max_g          = 0.95f,
     .max_accel_var  = 0.14f
 };
@@ -867,7 +867,7 @@ int mpu_init(void)
  *  frequency will result in an error.
  *  \n To select a fractional wake-up frequency, round down the value passed to
  *  @e rate.
- *  @param[in]  rate        Minimum sampling rate, or zero to disable LP
+ *  @param[in]  rate        my_minimum sampling rate, or zero to disable LP
  *                          accel mode.
  *  @return     0 if successful.
  */
@@ -1383,7 +1383,7 @@ int mpu_set_sample_rate(unsigned short rate)
         st.chip_cfg.sample_rate = 1000 / (1 + data);
 
 #ifdef AK89xx_SECONDARY
-        mpu_set_compass_sample_rate(min(st.chip_cfg.compass_sample_rate, MAX_COMPASS_SAMPLE_RATE));
+        mpu_set_compass_sample_rate(my_min(st.chip_cfg.compass_sample_rate, MAX_COMPASS_SAMPLE_RATE));
 #endif
 
         /* Automatically set LPF to 1/2 sampling rate. */
@@ -1920,7 +1920,7 @@ static int accel_self_test(long *bias_regular, long *bias_st)
             st_shift_var = st_shift_cust / st_shift[jj] - 1.f;
             if (fabs(st_shift_var) > test.max_accel_var)
                 result |= 1 << jj;
-        } else if ((st_shift_cust < test.min_g) ||
+        } else if ((st_shift_cust < test.my_min_g) ||
             (st_shift_cust > test.max_g))
             result |= 1 << jj;
     }
@@ -1950,7 +1950,7 @@ static int gyro_self_test(long *bias_regular, long *bias_st)
             st_shift_var = st_shift_cust / st_shift - 1.f;
             if (fabs(st_shift_var) > test.max_gyro_var)
                 result |= 1 << jj;
-        } else if ((st_shift_cust < test.min_dps) ||
+        } else if ((st_shift_cust < test.my_min_dps) ||
             (st_shift_cust > test.max_dps))
             result |= 1 << jj;
     }
@@ -2335,7 +2335,7 @@ int mpu_load_firmware(unsigned short length, const unsigned char *firmware,
     if (!firmware)
         return -1;
     for (ii = 0; ii < length; ii += this_write) {
-        this_write = min(LOAD_CHUNK, length - ii);
+        this_write = my_min(LOAD_CHUNK, length - ii);
         if (mpu_write_mem(ii, this_write, (unsigned char*)&firmware[ii]))
             return -1;
         if (mpu_read_mem(ii, this_write, cur))
@@ -2588,7 +2588,7 @@ int mpu_get_compass_fsr(unsigned short *fsr)
  *
  *  \n MPU6050:
  *  \n When this mode is first enabled, the hardware captures a single accel
- *  sample, and subsequent samples are compared with this one to determine if
+ *  sample, and subsequent samples are compared with this one to determy_mine if
  *  the device is in motion. Therefore, whenever this "locked" sample needs to
  *  be changed, this function must be called again.
  *
@@ -2622,7 +2622,7 @@ int mpu_get_compass_fsr(unsigned short *fsr)
  *  @param[in]  thresh      Motion threshold in mg.
  *  @param[in]  time        Duration in milliseconds that the accel data must
  *                          exceed @e thresh before motion is reported.
- *  @param[in]  lpa_freq    Minimum sampling rate, or zero to disable.
+ *  @param[in]  lpa_freq    my_minimum sampling rate, or zero to disable.
  *  @return     0 if successful.
  */
 int mpu_lp_motion_interrupt(unsigned short thresh, unsigned char time,
@@ -2653,7 +2653,7 @@ int mpu_lp_motion_interrupt(unsigned short thresh, unsigned char time,
 #endif
 
         if (!time)
-            /* Minimum duration must be 1ms. */
+            /* my_minimum duration must be 1ms. */
             time = 1;
 
 #if defined MPU6050

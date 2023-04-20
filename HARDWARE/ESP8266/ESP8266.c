@@ -201,14 +201,6 @@ void esp8266_task(void)
     }
 }
 
-void esp8266_task_init(void)
-{
-    m_esp8266_task.Period = Period_to_Tick(ESP8266_Period);
-    m_esp8266_task.arrive = 0;
-    m_esp8266_task.priority = 4;
-    m_esp8266_task.task = &esp8266_task;
-}
-
 /*
 AT+MQTTPUB=0,"/sys/i5z42JpfDlV/ESP8266/thing/event/property/post","{\"method\":\"thing.service.property.set\"\,\"id\":\"2\"\,\"params\":{\"SPO2\":75}\,\"version\":\"1.0\"}",1,0
 */

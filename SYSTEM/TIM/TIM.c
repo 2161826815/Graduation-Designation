@@ -123,7 +123,6 @@ uint32_t inline tim_get_tick(void)
 void TIM3_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM3,TIM_IT_Update) != RESET){
-            //tim_tick += TIM_IT_TIME;
             ++tim_tick;
         TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
     }

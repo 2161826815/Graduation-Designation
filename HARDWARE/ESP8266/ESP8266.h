@@ -42,6 +42,6 @@ uint8_t ESP8266_Wait(void);
 uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret);
 uint8_t ESP8266_Init(void);
 uint8_t ESP8266_Pub_Data(float data,int type);
-void esp8266_task_init(void);
+void esp8266_task(void);
 
 #endif  

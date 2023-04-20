@@ -32,9 +32,6 @@
 #define TIM4_ON_OFF             0
 #define FSM_ON_OFF              0
 
-#define USE_MPU6050_IT          0
-#define MPU6050_IT_TIME         20
-
 typedef enum fsm{
     fsm_init_end = 1,
     fsm_task_ds18b20,
@@ -56,16 +53,25 @@ typedef struct data_buff
     uint32_t IR;
 }data_buff_t;
 
-#define LED_Period              20U
-#define LED2_Period             20U
-#define DS18B20_READ_Period     400U
-#define DS18B20_convert_Period  5U
-#define OLED_REFRESH            50U
-#define OLED_calcu_Period       20U
-#define MAX30102_Period         20U
-#define MPU6050_Period          30U
-#define ESP8266_Period          50U
+#define LED1_Period             (25U)      //√
+#define LED2_Period             (25U)      //√
+#define DS18B20_READ_Period     (400U)    //√
+#define DS18B20_CONVERT_Period  (5U)      //√
+#define OLED_REFRESH_Period     (50U)     //√
+#define OLED_CALCU_Period       (20U)     //√
+#define MAX30102_Period         (10U)
+#define MPU6050_Period          (30U)     //√
+#define ESP8266_Period          (50U)
 
+#define LED1_ID                 (1)
+#define LED2_ID                 (2)
+#define DS18B20_READ_ID         (3)
+#define DS18B20_CONVERT_ID      (4)
+#define MPU6050_ID              (5)
+#define OLED_REFRESH_ID         (6)
+#define OLED_CALCU_ID           (7)
+#define MAX30102_ID             (8)
+#define ESP8266_ID              (9)
 
 void peripheral_init(void);
 void task_looper(void);

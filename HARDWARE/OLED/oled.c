@@ -285,14 +285,6 @@ void oled_refresh_task(void)
 	OLED_Display();
 }
 
-void oled_refresh_init(void)
-{
-	m_oled_refresh_task.Period = Period_to_Tick(OLED_REFRESH);
-	m_oled_refresh_task.arrive = 0;
-	m_oled_refresh_task.priority = 10;
-	m_oled_refresh_task.task = &oled_refresh_task;
-}
-
 void oled_calcu_buffer_task(void)
 {
 
@@ -300,7 +292,6 @@ void oled_calcu_buffer_task(void)
 	oled_data.temp_int = (uint8_t)all_data.temperature;
 	oled_data.temp_float = (uint8_t)((all_data.temperature-oled_data.temp_int)*100);
 	m_oled_refresh_task.pri_data |= OLED_DS18B20_MASK;
-
 #endif
 
 #if MPU6050_ON_OFF
@@ -314,7 +305,6 @@ void oled_calcu_buffer_task(void)
 	oled_data.yaw_float = (uint8_t)((all_data.yaw-oled_data.yaw_int)*100);
 
 	m_oled_refresh_task.pri_data |= OLED_MPU6050_MASK;
-	
 #endif
 
 #if MAX30102_ON_OFF
@@ -322,12 +312,4 @@ void oled_calcu_buffer_task(void)
 	oled_data.SPO2 = all_data.SPO2;
 	m_oled_refresh_task.pri_data |= OLED_MAX30102_MASK;
 #endif
-}
-
-void oled_calcu_Buff_task_init(void)
-{
-    m_oled_calcu_task.Period = Period_to_Tick(OLED_calcu_Period);
-	m_oled_calcu_task.arrive =0;
-	m_oled_calcu_task.priority = 7;
-    m_oled_calcu_task.task = &oled_calcu_buffer_task;
 }

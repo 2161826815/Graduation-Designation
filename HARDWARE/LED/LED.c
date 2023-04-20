@@ -7,7 +7,6 @@ void LED_Init(void)
 	RCC_APB2PeriphClockCmd(LED_Clock_Port,ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO,ENABLE);
 
-	//关闭PC13侵入检测功能，使能PC13作为普通IO口
 	BKP_TamperPinCmd(DISABLE);		
 	BKP_ITConfig(DISABLE);
 
@@ -85,28 +84,13 @@ void LED_Toggle(int num)
 	}
 }
 
-void led_task(void)
+void led1_task(void)
 {
 	LED_Toggle(1);
 }
 
 void led2_task(void)
 {
-	LED_Toggle(2);
+	LED_Toggle(3);
 }
 
-void led_task_init(void)
-{
-    m_led_task.Period = Period_to_Tick(LED_Period);
-	m_led_task.arrive= 0;
-	m_led_task.priority = 8;
-    m_led_task.task = &led_task;
-}
-
-void led2_task_init(void)
-{
-    m_led2_task.Period = Period_to_Tick(LED2_Period);
-	m_led2_task.arrive= 0;
-	m_led2_task.priority = 9;
-    m_led2_task.task = &led2_task;
-}

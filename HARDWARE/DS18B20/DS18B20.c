@@ -3,9 +3,6 @@
 #include "Task_List.h"
 #include "init.h"
 
-Task_t m_ds18b20_read_task;
-Task_t m_ds18b20_convert_task;
-
 uint8_t DS18B20_Init(void)
 {
     uint8_t ret;
@@ -33,7 +30,7 @@ void DS18B20_Mode_Change(uint8_t mode_cmd)
         ds18b20_struct.GPIO_Mode = DS18B20_GPIO_Output_Mode;
     }
     else if(mode_cmd == INPUT){
-        ds18b20_struct.GPIO_Mode = DS18B20_GPIO_Input_Mode; //Problem 2
+        ds18b20_struct.GPIO_Mode = DS18B20_GPIO_Input_Mode;
     }
     GPIO_Init(DS18B20_PORT,&ds18b20_struct);
 }
@@ -166,35 +163,24 @@ float DS18B20_Read_Temp(void)
         return temp*0.0625;
 }
 
+static uint8_t READ_STATUS = 0;
 void da18b20_convert_task(void)
 {
-    if(m_ds18b20_read_task.pri_data == 0){
+    if(READ_STATUS == 0){
         DS18B20_Start();
         DS18B20_Write_Byte(0xcc);
         DS18B20_Write_Byte(0x44);//convert
-        m_ds18b20_read_task.pri_data = 1;
+        READ_STATUS = 1;
     }
 }
 
-void ds18b20_convert_task_init(void)
-{
-    m_ds18b20_convert_task.Period = Period_to_Tick(DS18B20_convert_Period);
-    m_ds18b20_convert_task.arrive = 0;
-    m_ds18b20_convert_task.priority = 1;
-    m_ds18b20_convert_task.task = &da18b20_convert_task;
-}
-
-
 extern data_buff_t all_data;
-uint8_t OLED_DS18B20_Fresh;
 void ds18b20_read_task(void)
 {
     float temp;
     temp = DS18B20_Read_Temp();
-    DMA_Printf("ds\r\n");
     all_data.temperature =  ((int)(temp*100))/(100.0);
-    m_ds18b20_read_task.pri_data = 0;   //读取完成,发送转换指令
-
+    READ_STATUS = 0;   //读取完成,发送转换指令
 #if BEEP_ON_OFF
     if(all_data.temperature > 38){
         BEEP_ON();
@@ -202,15 +188,8 @@ void ds18b20_read_task(void)
         BEEP_OFF();
     }
 #endif
+}
 
-}
-void ds18b20_read_task_init(void)
-{
-    m_ds18b20_read_task.Period = Period_to_Tick(DS18B20_READ_Period);
-    m_ds18b20_read_task.arrive = 0;
-    m_ds18b20_read_task.priority = 2;
-    m_ds18b20_read_task.task = &ds18b20_read_task;
-}
 
 
 
