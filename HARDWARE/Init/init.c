@@ -38,7 +38,7 @@ void peripheral_init(void)
     BEEP_Init();
 #if MPU6050_ON_OFF
 
-    while(MPU_Init());                                                 //MPU6050 角速度，加速度传感器初始化
+    while(MPU_Init())
     DMA_Printf("MPU6050 Init Success\r\n");
     while(mpu_dmp_init());
 
@@ -50,17 +50,15 @@ void peripheral_init(void)
 #endif
 
 #if MAX30102_ON_OFF
-    Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
-
-    max30102_task_init();
-    task_add(&m_max30102_task,m_max30102_task.Period);
+    Max30102_Init();
+    task_add(&m_max30102_task,m_max30102_task.period);
 
     DMA_Printf("Max30102 Init Success\r\n");
 #endif
 
 #if OLED_ON_OFF
 	OLED_Init();
-	OLED_Clear(0);                                                  //清屏
+	OLED_Clear(0);
     GUI_ShowString(0,0,(uint8_t*)"temp:",8,1);
     GUI_ShowString(0,10,(uint8_t*)"pitch:",8,1);
     GUI_ShowString(0,20,(uint8_t*)"roll:",8,1);
@@ -74,14 +72,14 @@ void peripheral_init(void)
 #endif
 
 #if ESP_ON_OFF
-    while(ESP8266_Init());                                           //ESP8266 WIFI模块初始化
+    while(ESP8266_Init());
     LED_ON(5);
     task_add(&m_esp8266_task,m_esp8266_task.period);
     DMA_Printf("ESP8266 Init Success\r\n");
 #endif
 
 #if DS18B20_ON_OFF
-    while(DS18B20_Init());                                           //DS18B20 温度传感器初始化
+    while(DS18B20_Init());
     DMA_Printf("DS18B20 Init Success\r\n");
 
     task_add(&m_ds18b20_read_task,m_ds18b20_read_task.period);
@@ -94,7 +92,7 @@ void task_looper(void)
     static uint32_t pre_tick;
     uint32_t cur_tick;
 
-    tim3_init((TIM_IT_TIME*10-1),7199);   //Start Timer
+    tim3_init((TIM_IT_TIME*10-1),7199);
 
     for(;;){
         cur_tick = tim_get_tick();
