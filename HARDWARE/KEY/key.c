@@ -6,7 +6,7 @@ void Key_NVIC_Config(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     NVIC_Struct.NVIC_IRQChannel = EXTI9_5_IRQn;
     NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
     NVIC_Struct.NVIC_IRQChannelSubPriority = 0;
     NVIC_Init(&NVIC_Struct);
 

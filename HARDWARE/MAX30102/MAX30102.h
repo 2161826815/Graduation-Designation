@@ -41,4 +41,5 @@ void Max30102_Init(void);
 void Max30102_Read_FIFO(uint32_t *RED,uint32_t *IR);
 void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *HR_Value);
 void Max30102_Get_First_Sample(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *HR_Value);
+void max30102_task(void);
 #endif

@@ -72,6 +72,8 @@
 
 #define MPU_ADDR				0X68    //AD0接地，地址为0x68,接3v3为0x69
 
+#define MPU_READ_MASK           0x01
+#define MPU_IT_MASK             0x02
 
 uint8_t MPU_Init(void); 								//初始化MPU6050
 
@@ -84,6 +86,6 @@ uint8_t MPU_Set_Rate(u16 rate);
 short MPU_Get_Temperature(void);
 uint8_t MPU_Get_Gyroscope(short *gx,short *gy,short *gz);
 uint8_t MPU_Get_Accelerometer(short *ax,short *ay,short *az);
-
+void mpu6050_task(void);
 #endif
 

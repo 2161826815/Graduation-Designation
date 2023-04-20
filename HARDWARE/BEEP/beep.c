@@ -11,19 +11,16 @@ void BEEP_Init(void)
 	
 	GPIO_Init(BEEP_Port,&BEEP_Struct);
 	GPIO_SetBits(BEEP_Port,BEEP_Pin);
-
 }
 
 void BEEP_ON(void)
 {
 	GPIO_ResetBits(BEEP_Port,BEEP_Pin);
-
 }
 
 void BEEP_OFF(void)
 {
 	GPIO_SetBits(BEEP_Port,BEEP_Pin);
-
 }
 
 void BEEP_Toggle(void)

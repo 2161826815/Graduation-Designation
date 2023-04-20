@@ -1,10 +1,12 @@
 #include "MAX30102.h"
 #include "soft_iic.h"
+#include "Task_List.h"
+#include "init.h"
+
 uint32_t IR_Buffer[500];
 uint32_t RED_Buffer[500];
 int32_t IR_Buffrt_Length;
-
-#define USE_Soft_I2C 0
+Task_t m_max30102_task;
 
 void Max30102_Reset(void)
 {
@@ -25,8 +27,8 @@ void Max30102_Init(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     NVIC_Struct.NVIC_IRQChannel = EXTI9_5_IRQn;
     NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_Struct.NVIC_IRQChannelSubPriority = 1;
+    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_Struct.NVIC_IRQChannelSubPriority = 0;
     NVIC_Init(&NVIC_Struct);
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO,ENABLE);
@@ -38,14 +40,9 @@ void Max30102_Init(void)
     EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
     EXTI_Init(&EXTI_InitStruct);
     
-    
-#if USE_Soft_I2C
-    Soft_IIC_Init();
-#else
     I2C_Config();
-#endif
-    Max30102_Reset();
 
+    Max30102_Reset();
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_1_rigister,0xC0,1);  //Enable A_FULL and PPG_RDY
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_wr_ptr_rigister,0x00,1);         //Write_prt reset
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,over_flow_cnt_rigister,0x00,1);       //over_flow_ptr reset
@@ -146,3 +143,11 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
         *SPO2_Value = 0;
     } 
 }
+
+extern data_buff_t all_data;
+void max30102_task(void)
+{
+    Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
+    DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
+}
+

@@ -20,13 +20,17 @@ enum mode_cmd
     OUTPUT
 };
 
-#endif
-
-uint8_t DS18B20_Init(void);
 void DS18B20_Mode_Change(uint8_t mode_cmd);
 void DS18B20_Start(void);
 void DS18B20_Write_Byte(uint8_t data);
-uint8_t DS18B20_Read_Byte(void);
-float DS18B20_Read_Temp(void);
 void DS18B20_RST(void);
+void DS18B20_Convert(void);
+void ds18b20_read_task(void);
+void da18b20_convert_task(void);
+uint8_t DS18B20_Init(void);
+uint8_t DS18B20_Read_Byte(void);
 uint8_t DS18B20_Check(void);
+float DS18B20_Read_Temp(void);
+#endif
+
+

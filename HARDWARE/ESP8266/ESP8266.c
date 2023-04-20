@@ -1,5 +1,7 @@
 #include "ESP8266.h"
-
+#include "Task_List.h"
+#include "init.h"
+Task_t m_esp8266_task;
 extern uint8_t DMA_RCV_Buffer[DMA_SIZE];
 char Pub_Data[PUB_SIZE];
 uint16_t RCV_CNT=0;
@@ -53,7 +55,6 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
         }else{
 
         }
-        delay_ms(10);
     }
 #endif
 
@@ -64,17 +65,17 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
         USART_Send_str(ESP8266_USARTX,cmd);
         while(!DMA_TC_STATUS);
         if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
-            printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
+            DMA_Printf("DMA_RCV_Buffer:  %s,times:%d\r\n",DMA_RCV_Buffer,timeout);
             
-            printf("Recieve OK\r\n");
+            DMA_Printf("Recieve OK\r\n");
             return 0;
         }else{
-            printf("Recieve Fail\r\n");
+            DMA_Printf("Recieve Fail\r\n");
         }
         
         ESP8266_RCV_Clear();
         DMA_TC_STATUS = 0;
-        printf("2adasdas\r\n");
+        DMA_Printf("2adasdas\r\n");
         delay_ms(1000);
     }
 #endif
@@ -128,7 +129,8 @@ uint8_t ESP8266_Init()
     return 0;
 }
 
-void ESP8266_Pub_Data(float data,int type)
+//Success:0 Fail:1
+uint8_t ESP8266_Pub_Data(float data,int type)
 {
     switch(type){
     case Type_Temperature:
@@ -140,9 +142,9 @@ void ESP8266_Pub_Data(float data,int type)
 1,0\r\n",data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub Temperature Success\r\n");
+            DMA_Printf("Pub Temperature Success\r\n");
         }else{
-            printf("Pub Temperature Fail\r\n");
+            return 1;
         }
         break;
     case Type_HR:
@@ -155,9 +157,9 @@ void ESP8266_Pub_Data(float data,int type)
 1,0\r\n",(uint32_t)data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub HR Success\r\n");
+            DMA_Printf("Pub HR Success\r\n");
         }else{
-            printf("Pub HR Fail\r\n");
+            return 1;
         }
         break;
        
@@ -170,9 +172,9 @@ void ESP8266_Pub_Data(float data,int type)
 1,0\r\n",(uint32_t)data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            printf("Pub SPO2 Success\r\n");
+            DMA_Printf("Pub SPO2 Success\r\n");
         }else{
-            printf("Pub SPO2 Fail\r\n");
+            return 1;
         }  
         break;
 
@@ -180,6 +182,23 @@ void ESP8266_Pub_Data(float data,int type)
         break;
     }
     memset(Pub_Data,0,sizeof(uint8_t)*PUB_SIZE);
+    return 0;
+}
+
+extern data_buff_t all_data;
+void esp8266_task(void)
+{
+    static float last_temp = 0;
+    if(all_data.temperature != last_temp){
+        while(ESP8266_Pub_Data(all_data.temperature,Type_Temperature));
+        last_temp = all_data.temperature;
+    }
+    if(all_data.SPO2>0){
+        while(ESP8266_Pub_Data(all_data.SPO2,Type_SPO2));
+    }
+    if(all_data.HR>0){
+        while(ESP8266_Pub_Data(all_data.HR,Type_HR));
+    }
 }
 
 /*

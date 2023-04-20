@@ -1,8 +1,11 @@
 #include "DS18B20.h"
-#include "delay.h"
+#include "SysTick.h"
+#include "Task_List.h"
+#include "init.h"
 
 uint8_t DS18B20_Init(void)
 {
+    uint8_t ret;
     RCC_APB2PeriphClockCmd(DS18B20_GPIO_RCC,ENABLE);
 
     GPIO_InitTypeDef ds18b20_struct;
@@ -12,7 +15,8 @@ uint8_t DS18B20_Init(void)
     GPIO_Init(DS18B20_PORT,&ds18b20_struct);
 
     DS18B20_RST();
-    return DS18B20_Check();
+    ret = DS18B20_Check();
+    return ret;
 }
 
 void DS18B20_Mode_Change(uint8_t mode_cmd)
@@ -26,7 +30,7 @@ void DS18B20_Mode_Change(uint8_t mode_cmd)
         ds18b20_struct.GPIO_Mode = DS18B20_GPIO_Output_Mode;
     }
     else if(mode_cmd == INPUT){
-        ds18b20_struct.GPIO_Mode = DS18B20_GPIO_Input_Mode; //Problem 2
+        ds18b20_struct.GPIO_Mode = DS18B20_GPIO_Input_Mode;
     }
     GPIO_Init(DS18B20_PORT,&ds18b20_struct);
 }
@@ -35,7 +39,7 @@ void DS18B20_RST(void)
 {
     DS18B20_Mode_Change(OUTPUT);
     DS18B20_LOW;
-    delay_us(750);
+    delay_us(480);
     DS18B20_HIGH;
     delay_us(30);
 }
@@ -128,20 +132,23 @@ void DS18B20_Start(void)
     if(!DS18B20_Check()){
 
     }else{
-        printf("RST Fail\r\n");
         return;
     }
 } 
+
+void DS18B20_Convert(void)
+{
+    DS18B20_Start();
+    DS18B20_Write_Byte(0xcc);
+    DS18B20_Write_Byte(0x44);               //convert
+    delay_ms(750);
+}
 
 float DS18B20_Read_Temp(void)
 {
     uint8_t LOW=0,HIGH=0;
     uint16_t temp = 0;
-    DS18B20_Start();
-    DS18B20_Write_Byte(0xcc);
-    DS18B20_Write_Byte(0x44);               //convert
-    delay_ms(750);
-        
+
     DS18B20_Start();
     DS18B20_Write_Byte(0xcc);
     DS18B20_Write_Byte(0xbe);               //read
@@ -149,10 +156,41 @@ float DS18B20_Read_Temp(void)
     LOW = DS18B20_Read_Byte();
     HIGH = DS18B20_Read_Byte();
     temp = (HIGH << 8) + LOW;
-                                            //Problem 4
-    if((temp & 0xf800) == 0xf800)          //负数
+                                        
+    if((temp & 0xf800) == 0xf800)        
         return (~temp + 0x01)*-0.0625;
-    else                                    //正数
+    else                                 
         return temp*0.0625;
-    
 }
+
+static uint8_t READ_STATUS = 0;
+void da18b20_convert_task(void)
+{
+    if(READ_STATUS == 0){
+        DS18B20_Start();
+        DS18B20_Write_Byte(0xcc);
+        DS18B20_Write_Byte(0x44);//convert
+        READ_STATUS = 1;
+    }
+}
+
+extern data_buff_t all_data;
+void ds18b20_read_task(void)
+{
+    float temp;
+    temp = DS18B20_Read_Temp();
+    all_data.temperature =  ((int)(temp*100))/(100.0);
+    READ_STATUS = 0;   //读取完成,发送转换指令
+#if BEEP_ON_OFF
+    if(all_data.temperature > 38){
+        BEEP_ON();
+    }else{
+        BEEP_OFF();
+    }
+#endif
+}
+
+
+
+
+

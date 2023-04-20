@@ -80,13 +80,17 @@ void PendSV_Handler(void)
 }
 void USART1_IRQHandler(void)         //Problem 1
 {
-  uint8_t temp;
+  //uint8_t temp;
   if(USART_GetFlagStatus(Debug_Usart,USART_FLAG_RXNE) != RESET){
-    temp = USART_ReceiveData(Debug_Usart);
+    //temp = USART_ReceiveData(Debug_Usart);
     //USART_SendData(Debug_Usart,temp);
-    USART_SendData(ESP8266_USARTX,temp);//串口调试ESP
+    //USART_SendData(ESP8266_USARTX,temp);//串口调试ESP
     USART_ClearFlag(Debug_Usart, USART_FLAG_RXNE);
   }
+  /* if(USART_GetFlagStatus(Debug_Usart,USART_IT_TC) != RESET){
+    LED_Toggle(3);
+    USART_ClearFlag(Debug_Usart, USART_IT_TC);
+  } */
 }
 
 
@@ -94,55 +98,28 @@ void EXTI9_5_IRQHandler(void)
 {
   //KEY3
   if(EXTI_GetITStatus(EXTI_Line8) == SET){
-		LED_Toggle(1);
-    LED_Toggle(3);
-    
-    //ESP8266_Pub_Data(180,Type_SPO2);
-    
-    //ESP8266_Pub_Data(37.7,Type_Temperature);
 
     EXTI_ClearITPendingBit(EXTI_Line8);
   }
 
   //KEY4
   if(EXTI_GetITStatus(EXTI_Line9) == SET){
-    LED_Toggle(4);
-    LED_Toggle(5);
-#if BEEP_ON_OFF
-    BEEP_Toggle();
-#endif
-    //ESP8266_Pub_Data(32.2,Type_Temperature);
+
     EXTI_ClearITPendingBit(EXTI_Line9);
   }
+
   //MAX30102
   if(EXTI_GetITStatus(EXTI_Line5) == SET){
-    printf("Max30102\r\n");
 
     EXTI_ClearITPendingBit(EXTI_Line5);
   }
 }
 
+
 void EXTI15_10_IRQHandler(void)
 {
   //KEY2
   if(EXTI_GetITStatus(EXTI_Line14) == SET){
-
-    BEEP_OFF();                                     //关闭蜂鸣器
-
-    EXTI_ClearITPendingBit(EXTI_Line14);
-  }
-
-  //KEY5
-  extern uint8_t OLED_State;
-  if(EXTI_GetITStatus(EXTI_Line15) == SET){         //开启关闭OLED
-    if(OLED_State){
-      OLED_Display_On();
-      OLED_State = !OLED_State; 
-    }else{
-      OLED_Display_On();
-      OLED_State = !OLED_State;
-    }
-      
 
     EXTI_ClearITPendingBit(EXTI_Line15);
   }

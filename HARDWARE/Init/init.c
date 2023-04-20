@@ -1,0 +1,108 @@
+#include "init.h"
+
+extern float fir_pitch;
+extern float fir_roll;
+extern float fir_yaw;
+
+extern list_item long_task;
+extern list_item hit_task[HIT_LIST_TICK_MAX];
+
+data_buff_t all_data;
+
+static Task_t m_led1_task = TASK_CTOR(led1_task,Period_to_Tick(LED1_Period),LED1_ID);
+static Task_t m_led2_task = TASK_CTOR(led2_task,Period_to_Tick(LED2_Period),LED2_ID);
+static Task_t m_ds18b20_read_task = TASK_CTOR(ds18b20_read_task,Period_to_Tick(DS18B20_READ_Period),DS18B20_READ_ID);
+static Task_t m_ds18b20_convert_task = TASK_CTOR(da18b20_convert_task,Period_to_Tick(DS18B20_CONVERT_Period),DS18B20_CONVERT_ID);
+static Task_t m_max30102_task = TASK_CTOR(max30102_task,Period_to_Tick(MAX30102_Period),MAX30102_ID);
+static Task_t m_mpu6050_task = TASK_CTOR(mpu6050_task,Period_to_Tick(MPU6050_Period),MPU6050_ID);
+static Task_t m_esp8266_task = TASK_CTOR(esp8266_task,Period_to_Tick(ESP8266_Period),ESP8266_ID);
+static Task_t m_oled_calcu_task = TASK_CTOR(oled_calcu_buffer_task,Period_to_Tick(OLED_CALCU_Period),OLED_CALCU_ID);
+static Task_t m_oled_refresh_task = TASK_CTOR(oled_refresh_task,Period_to_Tick(OLED_REFRESH_Period),OLED_REFRESH_ID);
+
+void peripheral_init(void)
+{
+    sys_tick_init();
+    LED_Init();
+    Debug_USART_init();
+
+    list_init(&long_task);
+    for(uint8_t i=0;i<HIT_LIST_TICK_MAX;i++){
+        list_init(&hit_task[i]);
+    }
+
+    task_add(&m_led1_task,m_led1_task.period);
+    task_add(&m_led2_task,m_led2_task.period);
+
+    Key_Init();
+
+    BEEP_Init();
+#if MPU6050_ON_OFF
+
+    while(MPU_Init());                                                 //MPU6050 角速度，加速度传感器初始化
+    DMA_Printf("MPU6050 Init Success\r\n");
+    while(mpu_dmp_init());
+
+    while(mpu_dmp_get_data(&fir_pitch,&fir_roll,&fir_yaw) != 0);
+    DMA_Printf("DMP Init Success\r\n");
+
+    task_add(&m_mpu6050_task,m_mpu6050_task.period);
+
+#endif
+
+#if MAX30102_ON_OFF
+    Max30102_Init();                                                //MAX30102 心率血氧传感器初始化
+
+    max30102_task_init();
+    task_add(&m_max30102_task,m_max30102_task.Period);
+
+    DMA_Printf("Max30102 Init Success\r\n");
+#endif
+
+#if OLED_ON_OFF
+	OLED_Init();
+	OLED_Clear(0);                                                  //清屏
+    GUI_ShowString(0,0,(uint8_t*)"temp:",8,1);
+    GUI_ShowString(0,10,(uint8_t*)"pitch:",8,1);
+    GUI_ShowString(0,20,(uint8_t*)"roll:",8,1);
+    GUI_ShowString(0,30,(uint8_t*)"yaw:",8,1);
+    GUI_ShowString(0,40,(uint8_t*)"HR:",8,1);
+    GUI_ShowString(0,50,(uint8_t*)"SPO2:",8,1);
+    OLED_Display();
+
+    task_add(&m_oled_refresh_task,m_oled_refresh_task.period);
+    task_add(&m_oled_calcu_task,m_oled_calcu_task.period);
+#endif
+
+#if ESP_ON_OFF
+    while(ESP8266_Init());                                           //ESP8266 WIFI模块初始化
+    LED_ON(5);
+    task_add(&m_esp8266_task,m_esp8266_task.period);
+    DMA_Printf("ESP8266 Init Success\r\n");
+#endif
+
+#if DS18B20_ON_OFF
+    while(DS18B20_Init());                                           //DS18B20 温度传感器初始化
+    DMA_Printf("DS18B20 Init Success\r\n");
+
+    task_add(&m_ds18b20_read_task,m_ds18b20_read_task.period);
+    task_add(&m_ds18b20_convert_task,m_ds18b20_convert_task.period);
+#endif
+}
+
+void task_looper(void)
+{
+    static uint32_t pre_tick;
+    uint32_t cur_tick;
+
+    tim3_init((TIM_IT_TIME*10-1),7199);   //Start Timer
+
+    for(;;){
+        cur_tick = tim_get_tick();
+        if(cur_tick != pre_tick){  
+            pre_tick++;
+            task_dispatch();
+        }else{
+            continue;
+        }
+    } 
+}

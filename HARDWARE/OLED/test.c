@@ -45,7 +45,7 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "oled.h"
-#include "delay.h"
+#include "SysTick.h"
 #include "gui.h"
 #include "test.h"
 #include "bmp.h"
@@ -159,10 +159,10 @@ void TEST_English(void)
 {
 	GUI_ShowString(0,5,"6x8:abcdefghijklmnopqrstuvwxyz",8,1);
 	GUI_ShowString(0,25,"8x16:abcdefghijklmnopqrstuvwxyz",16,1);
-	delay_ms(1000);
+	//delay_ms(1000);
 	GUI_ShowString(0,5,"6x8:ABCDEFGHIJKLMNOPQRSTUVWXYZ",8,1);
 	GUI_ShowString(0,25,"8x16:ABCDEFGHIJKLMNOPQRSTUVWXYZ",16,1);
-	delay_ms(1500);
+	//delay_ms(1500);
 }
 
 /*****************************************************************************
@@ -192,21 +192,6 @@ void TEST_Number_Character(void)
  * @parameters :None
  * @retvalue   :None
 ******************************************************************************/
-void TEST_Chinese(void)
-{	
-	GUI_ShowString(45,0,"16x16",8,1);
-	GUI_ShowCHinese(16,20,16,"全动电子技术",1);
-	delay_ms(1000);
-	OLED_Clear(0);
-	GUI_ShowString(45,0,"24x24",8,1);
-	GUI_ShowCHinese(16,20,24,"全动电子",1);
-	delay_ms(1000);
-	OLED_Clear(0);
-	GUI_ShowString(45,0,"32x32",8,1);
-	GUI_ShowCHinese(0,20,32,"全动电子",1);	
-  delay_ms(1000);
-	OLED_Clear(0);
-}
 
 /*****************************************************************************
  * @name       :void TEST_BMP(void)

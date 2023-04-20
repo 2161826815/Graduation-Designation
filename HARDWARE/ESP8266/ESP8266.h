@@ -4,7 +4,7 @@
 #include "stm32f10x.h"
 #include "ESP_USART.h"
 #include <stdio.h>
-#include "delay.h"
+#include "SysTick.h"
 
 /*
 #define WIFI_ID     "(G)-IDLE"
@@ -41,7 +41,7 @@ void ESP8266_RCV_Clear(void);
 uint8_t ESP8266_Wait(void);
 uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret);
 uint8_t ESP8266_Init(void);
-void ESP8266_Pub_Data(float data,int type);
-
+uint8_t ESP8266_Pub_Data(float data,int type);
+void esp8266_task(void);
 
 #endif  

@@ -1,11 +1,12 @@
 #include "LED.h"
-
+#include "init.h"
+Task_t m_led_task;
+Task_t m_led2_task;
 void LED_Init(void)
 {
 	RCC_APB2PeriphClockCmd(LED_Clock_Port,ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO,ENABLE);
 
-	//关闭PC13侵入检测功能，使能PC13作为普通IO口
 	BKP_TamperPinCmd(DISABLE);		
 	BKP_ITConfig(DISABLE);
 
@@ -19,8 +20,8 @@ void LED_Init(void)
 	LED_Struct.GPIO_Pin = LED1_Pin;
 	GPIO_Init(LED1_Port,&LED_Struct);
 
-	GPIO_ResetBits(LED3_Port,LED3_Pin |  LED4_Pin |  LED5_Pin);
-	GPIO_ResetBits(LED1_Port,LED1_Pin);
+	GPIO_SetBits(LED3_Port,LED3_Pin |  LED4_Pin |  LED5_Pin);
+	GPIO_SetBits(LED1_Port,LED1_Pin);
 }
 
 void LED_ON(int num)
@@ -82,3 +83,14 @@ void LED_Toggle(int num)
 			break;
 	}
 }
+
+void led1_task(void)
+{
+	LED_Toggle(1);
+}
+
+void led2_task(void)
+{
+	LED_Toggle(3);
+}
+
