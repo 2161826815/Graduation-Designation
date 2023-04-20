@@ -25,7 +25,7 @@ struct oled_buffer
 }oled_data;
 
 
-static unsigned char OLED_buffer[1024];
+static unsigned char OLED_buffer[8][128];
 
 
 void OLED_WR_Byte(unsigned dat,unsigned cmd)
@@ -83,12 +83,14 @@ void OLED_Display_Off(void)
 
 void OLED_Set_Pixel(unsigned char x, unsigned char y,unsigned char color)
 {
-	if(color){
-		OLED_buffer[(y/PAGE_SIZE)*WIDTH+x]|= (1<<(y%PAGE_SIZE))&0xff;
-	}
-	else{
-		OLED_buffer[(y/PAGE_SIZE)*WIDTH+x]&= ~((1<<(y%PAGE_SIZE))&0xff);
-	}
+	u8 pos,bx,temp=0;
+	if(x>127||y>63)return;//超出范围了.
+	pos=y/8;
+	bx=y%8;
+	temp=1<<bx;
+	if(color)OLED_buffer[pos][x]|=temp;
+	else OLED_buffer[pos][x]&=~temp;
+
 }		   			 
 
 uint8_t level[8][3] = {
@@ -106,13 +108,13 @@ void OLED_Display(void)
 	uint8_t i;
 	//uint8_t level[8][3];
 	for(i=0;i<PAGE_SIZE;i++){
-/* 		level[i][0] = YLevel+i;
-		level[i][1] = XLevelL;
-		level[i][2] = XLevelH; */
+ 	//	level[i][0] = YLevel+i;
+	//	level[i][1] = XLevelL;
+	//	level[i][2] = XLevelH; */
 		OLED_WR_Bytes(&level[i][0],OLED_CMD,3);
-		OLED_WR_Bytes(&OLED_buffer[i*WIDTH],OLED_DATA,WIDTH);
+		OLED_WR_Bytes(OLED_buffer[i],OLED_DATA,WIDTH);
 	}
-	//OLED_WR_large_Bytes(OLED_buffer,OLED_DATA,WIDTH*PAGE_SIZE);
+	//OLED_WR_large_Bytes(&OLED_buffer[0][0],OLED_DATA,WIDTH*PAGE_SIZE);
 
 	/* for(i=0;i<PAGE_SIZE;i++)  {  
 		OLED_WR_Byte (YLevel+i,OLED_CMD);    
@@ -145,38 +147,41 @@ void OLED_Init_GPIO(void)
 
 void OLED_Init(void)
 {
-	uint8_t	OLED_INIT_DATA[26] = {
-		0xae,0x02,0x10,0x40,0xb0,0x81,0xff,0xa1,0xa6,0xa8,0x3f,0xad,0x8b,0x32,0xc8,
+	/* uint8_t	OLED_INIT_DATA[28] = {
+		0xae,0x20,0x00,0x02,0x10,0x40,0xb0,0x81,0xff,0xa1,0xa6,0xa8,0x3f,0xad,0x8b,0x32,0xc8,
 		0xd3,0x00,0xd5,0x80,0xd9,0x1f,0xda,0x12,0xdb,0x40,0xaf
-	};
+	}; */
  	OLED_Init_GPIO();
-	OLED_WR_Bytes(OLED_INIT_DATA,OLED_CMD,26);
-	//OLED_WR_Byte(0xAE,OLED_CMD);    /*display off*/
-	//OLED_WR_Byte(0x02,OLED_CMD);    /*set lower column address*/       
-	//OLED_WR_Byte(0x10,OLED_CMD);    /*set higher column address*/     
-	//OLED_WR_Byte(0x40,OLED_CMD);    /*set display start line*/     
-	//OLED_WR_Byte(0xB0,OLED_CMD);    /*set page address*/     
-	//OLED_WR_Byte(0x81,OLED_CMD);    /*contract control*/
-	//OLED_WR_Byte(0xFF,OLED_CMD);    /*128*/     
-	//OLED_WR_Byte(0xA1,OLED_CMD);    /*set segment remap*/    
-	//OLED_WR_Byte(0xA6,OLED_CMD);    /*normal / reverse*/     
-	//OLED_WR_Byte(0xA8,OLED_CMD);    /*multiplex ratio*/
-	//OLED_WR_Byte(0x3F,OLED_CMD);    /*duty = 1/64*/     
-	//OLED_WR_Byte(0xAD,OLED_CMD);    /*set charge pump enable*/
-	//OLED_WR_Byte(0x8B,OLED_CMD);     /*    0x8B    �ڹ�VCC   */     
-	//OLED_WR_Byte(0x32,OLED_CMD);    /*0X30---0X33  set VPP   8V */     
-	//OLED_WR_Byte(0xC8,OLED_CMD);    /*Com scan direction*/     
-	//OLED_WR_Byte(0xD3,OLED_CMD);    /*set display offset*/
-	//OLED_WR_Byte(0x00,OLED_CMD);   /*   0x20  */     
-	//OLED_WR_Byte(0xD5,OLED_CMD);    /*set osc division*/
-	//OLED_WR_Byte(0x80,OLED_CMD);         
-	//OLED_WR_Byte(0xD9,OLED_CMD);    /*set pre-charge period*/
-	//OLED_WR_Byte(0x1F,OLED_CMD);    /*0x22*/     
-	//OLED_WR_Byte(0xDA,OLED_CMD);    /*set COM pins*/
-	//OLED_WR_Byte(0x12,OLED_CMD);     
-	//OLED_WR_Byte(0xDB,OLED_CMD);    /*set vcomh*/
-	//OLED_WR_Byte(0x40,OLED_CMD);                
-	//OLED_WR_Byte(0xAF,OLED_CMD);    /*display ON*/    
+	//OLED_WR_Bytes(OLED_INIT_DATA,OLED_CMD,28);
+	OLED_WR_Byte(0x20,OLED_CMD);
+	OLED_WR_Byte(0x00,OLED_CMD);
+
+	OLED_WR_Byte(0xAE,OLED_CMD);    /*display off*/
+	OLED_WR_Byte(0x01,OLED_CMD);    /*set lower column address*/       
+	OLED_WR_Byte(0x10,OLED_CMD);    /*set higher column address*/     
+	OLED_WR_Byte(0x40,OLED_CMD);    /*set display start line*/     
+	OLED_WR_Byte(0xB0,OLED_CMD);    /*set page address*/     
+	OLED_WR_Byte(0x81,OLED_CMD);    /*contract control*/
+	OLED_WR_Byte(0xFF,OLED_CMD);    /*128*/     
+	OLED_WR_Byte(0xA1,OLED_CMD);    /*set segment remap*/    
+	OLED_WR_Byte(0xA6,OLED_CMD);    /*normal / reverse*/     
+	OLED_WR_Byte(0xA8,OLED_CMD);    /*multiplex ratio*/
+	OLED_WR_Byte(0x3F,OLED_CMD);    /*duty = 1/64*/     
+	OLED_WR_Byte(0xAD,OLED_CMD);    /*set charge pump enable*/
+	OLED_WR_Byte(0x8B,OLED_CMD);     /*    0x8B    �ڹ�VCC   */     
+	OLED_WR_Byte(0x32,OLED_CMD);    /*0X30---0X33  set VPP   8V */     
+	OLED_WR_Byte(0xC8,OLED_CMD);    /*Com scan direction*/     
+	OLED_WR_Byte(0xD3,OLED_CMD);    /*set display offset*/
+	OLED_WR_Byte(0x00,OLED_CMD);   /*   0x20  */     
+	OLED_WR_Byte(0xD5,OLED_CMD);    /*set osc division*/
+	OLED_WR_Byte(0x80,OLED_CMD);         
+	OLED_WR_Byte(0xD9,OLED_CMD);    /*set pre-charge period*/
+	OLED_WR_Byte(0x1F,OLED_CMD);    /*0x22*/     
+	OLED_WR_Byte(0xDA,OLED_CMD);    /*set COM pins*/
+	OLED_WR_Byte(0x12,OLED_CMD);     
+	OLED_WR_Byte(0xDB,OLED_CMD);    /*set vcomh*/
+	OLED_WR_Byte(0x40,OLED_CMD);                
+	OLED_WR_Byte(0xAF,OLED_CMD);    /*display ON*/    
 }
 
 extern data_buff_t all_data;
