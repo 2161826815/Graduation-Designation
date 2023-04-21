@@ -148,7 +148,7 @@ extern data_buff_t all_data;
 void max30102_task(void)
 {
     LED_Toggle(4);
-    //Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
-    //DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
+    Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
+    DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
 }
 

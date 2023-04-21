@@ -128,7 +128,7 @@ extern data_buff_t all_data;
 
 void mpu6050_task(void)
 {	
-	mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw);
+	while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
 	if(all_data.pitch !=0 && all_data.roll!= 0 && all_data.yaw != 0){
 		if(all_data.pitch-fir_pitch > 30 || all_data.pitch-fir_pitch < -30 ||	\
 		 all_data.roll-fir_roll > 30 || all_data.roll-fir_roll < -30){

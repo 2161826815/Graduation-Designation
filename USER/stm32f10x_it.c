@@ -120,10 +120,7 @@ void EXTI15_10_IRQHandler(void)
 {
   //KEY2
   if(EXTI_GetITStatus(EXTI_Line14) == SET){
-    DMA_Printf("1\r\n");
-    Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
-    DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
-    EXTI_ClearITPendingBit(EXTI_Line15);
+
   }
 }
 

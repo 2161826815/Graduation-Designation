@@ -280,9 +280,9 @@ void oled_refresh_task(void)
 
 #if MAX30102_ON_OFF
 	if(m_oled_refresh_task.pri_data & OLED_MAX30102_MASK){
-		//GUI_ShowNum(24,40,HR_Value,3,8,1);
+		GUI_ShowNum(24,40,oled_data.HR,3,8,1);
 
-		//GUI_ShowNum(36,50,SPO2_Value,2,8,1);
+		GUI_ShowNum(36,50,oled_data.SPO2,2,8,1);
 		m_oled_refresh_task.pri_data &= ~OLED_MAX30102_MASK;
 	}
 #endif

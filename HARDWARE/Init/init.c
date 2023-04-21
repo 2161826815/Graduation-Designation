@@ -12,7 +12,7 @@ data_buff_t all_data;
 static Task_t m_led1_task = TASK_CTOR(led1_task,Period_to_Tick(LED1_Period),LED1_ID);
 static Task_t m_led2_task = TASK_CTOR(led2_task,Period_to_Tick(LED2_Period),LED2_ID);
 static Task_t m_ds18b20_read_task = TASK_CTOR(ds18b20_read_task,Period_to_Tick(DS18B20_READ_Period),DS18B20_READ_ID);
-static Task_t m_ds18b20_convert_task = TASK_CTOR(da18b20_convert_task,Period_to_Tick(DS18B20_CONVERT_Period),DS18B20_CONVERT_ID);
+static Task_t m_ds18b20_convert_task = TASK_CTOR(ds18b20_convert_task,Period_to_Tick(DS18B20_CONVERT_Period),DS18B20_CONVERT_ID);
 static Task_t m_max30102_task = TASK_CTOR(max30102_task,Period_to_Tick(MAX30102_Period),MAX30102_ID);
 static Task_t m_mpu6050_task = TASK_CTOR(mpu6050_task,Period_to_Tick(MPU6050_Period),MPU6050_ID);
 static Task_t m_esp8266_task = TASK_CTOR(esp8266_task,Period_to_Tick(ESP8266_Period),ESP8266_ID);
@@ -88,7 +88,7 @@ void peripheral_init(void)
 #endif
 }
 
-void task_looper(void)
+void task_dispatch_looper(void)
 {
     static uint32_t pre_tick;
     uint32_t cur_tick;
@@ -102,4 +102,85 @@ void task_looper(void)
             task_dispatch();
         }
     } 
+}
+
+void fsm_init(fsm_t *fsm)
+{
+    fsm->pre_state = fsm_idle_state;
+    fsm->cur_state = fsm_idle_state;
+}
+
+static uint8_t ds18b20_read_status = 1;
+void task_fsm_looper(fsm_t *m_fsm)   
+{
+    uint8_t i = 0;
+    static uint32_t pre_tick;
+    uint32_t cur_tick;
+
+    switch(m_fsm->cur_state){        //执行任务
+    case fsm_idle_state:
+        break;
+    case fsm_ds18b20_convert_state:
+        if(ds18b20_read_status){
+            ds18b20_convert_task();
+            ds18b20_read_status = 0;
+            pre_tick = get_tick();
+        }   
+        break;
+    case fsm_ds18b20_read_state:
+        cur_tick = get_tick();
+        if(cur_tick-pre_tick >= 480000){
+            ds18b20_read_task();
+            ds18b20_read_status = 1;
+        }         
+        break;
+    case fsm_mpu6050_state:
+        mpu6050_task();
+        break;
+    case fsm_max30102_state:
+        DMA_Printf("into max30102\r\n");
+        max30102_task();
+        
+        break;
+    case fsm_oled_calculate_state:
+        oled_calcu_buffer_task();
+        break;
+    case fsm_oled_refresh_state:
+        oled_refresh_task();
+        break;
+    case fsm_esp8266_state:
+        esp8266_task();
+        DMA_Printf("esp8266\r\n");
+        break;
+    default:
+        break;
+    }
+
+    switch(m_fsm->cur_state){        //切换任务
+    case fsm_idle_state:
+        m_fsm->cur_state = fsm_ds18b20_convert_state;
+        break;
+    case fsm_ds18b20_convert_state:
+        m_fsm->cur_state = fsm_ds18b20_read_state;
+        break;
+    case fsm_ds18b20_read_state:
+        m_fsm->cur_state = fsm_mpu6050_state;
+        break;
+    case fsm_mpu6050_state:
+        m_fsm->cur_state = fsm_max30102_state;
+    case fsm_max30102_state:
+        m_fsm->cur_state = fsm_oled_calculate_state;
+        break;
+    case fsm_oled_calculate_state:
+        m_fsm->cur_state = fsm_oled_refresh_state;
+        break;
+    case fsm_oled_refresh_state:
+        m_fsm->cur_state = fsm_idle_state;
+    //case fsm_esp8266_state:
+    //    i = 0;
+    //    m_fsm->cur_state = fsm_idle_state + i;
+        break;
+    default:
+        break;
+    }
 }

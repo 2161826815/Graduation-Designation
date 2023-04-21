@@ -164,7 +164,7 @@ float DS18B20_Read_Temp(void)
 }
 
 static uint8_t READ_STATUS = 0;
-void da18b20_convert_task(void)
+void ds18b20_convert_task(void)
 {
     if(READ_STATUS == 0){
         DS18B20_Start();
@@ -177,9 +177,7 @@ void da18b20_convert_task(void)
 extern data_buff_t all_data;
 void ds18b20_read_task(void)
 {
-    float temp;
-    temp = DS18B20_Read_Temp();
-    all_data.temperature =  ((int)(temp*100))/(100.0);
+    all_data.temperature =  ((int)(DS18B20_Read_Temp()*100))/(100.0);
     READ_STATUS = 0;   //读取完成,发送转换指令
 #if BEEP_ON_OFF
     if(all_data.temperature > 38){

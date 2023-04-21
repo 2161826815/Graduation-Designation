@@ -37,6 +37,7 @@ void Debug_USART_init(void)
     USART_ITConfig(Debug_Usart,USART_IT_RXNE,ENABLE);
     USART_Cmd(Debug_Usart,ENABLE);
 
+#if USE_DMA
     DMA_InitTypeDef DNA_Struct;
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1,ENABLE);
     DMA_DeInit(DMA1_Channel4);
@@ -61,7 +62,7 @@ void Debug_USART_init(void)
     NVIC_Struct.NVIC_IRQChannelSubPriority = 1;
     NVIC_Init(&NVIC_Struct);
     DMA_ITConfig(DMA1_Channel4,DMA_IT_TC,ENABLE);
-    
+#endif 
 }
 
 void Debug_USART_Send_Byte(USART_TypeDef* USARTX,uint8_t data)
@@ -98,7 +99,7 @@ int fputc(int ch,FILE* f)
 }
 
 
-
+#if USE_DMA
 static uint8_t DMA_STATUS;
 uint16_t USART1_SendBuffer(const char* buffer, uint16_t length)
 {
@@ -133,4 +134,4 @@ void DMA1_Channel4_IRQHandler(void)
 		DMA_ClearITPendingBit(DMA1_IT_TC4);
     }
 }
-
+#endif

@@ -24,7 +24,7 @@
 #define BEEP_ON_OFF             0
 #define ESP_ON_OFF              0
 #define DS18B20_ON_OFF          1
-#define MAX30102_ON_OFF         0
+#define MAX30102_ON_OFF         1
 #define MPU6050_ON_OFF          1
 #define OLED_ON_OFF             1
 #define TIM2_ON_OFF             0
@@ -33,12 +33,29 @@
 #define FSM_ON_OFF              0
 
 typedef enum fsm{
-    fsm_init_end = 1,
-    fsm_task_ds18b20,
-    fsm_task_mpu6050,
-    fsm_task_max30102,
-    fsm_task_esp8266,
-    fsm_task_oled,
+    fsm_idle_state = 0,
+    fsm_ds18b20_convert_state,
+    fsm_ds18b20_read_state,
+    fsm_mpu6050_state,
+    fsm_max30102_state,
+    fsm_oled_calculate_state,
+    fsm_oled_refresh_state,
+    fsm_esp8266_state,
+}fsm_state_t;
+
+typedef enum event{
+    fsm_start_event = 0,
+    fsm_ds18b20_event,
+    fsm_mpu6050_event,
+    fsm_max30102_event,
+    fsm_oled_event,
+    fsm_esp8266_event,
+    fsm_idle_sevent,
+}fsm_event_t;
+
+typedef struct {
+    fsm_state_t pre_state;
+    fsm_state_t cur_state;
 }fsm_t;
 
 typedef struct data_buff
@@ -74,5 +91,7 @@ typedef struct data_buff
 #define ESP8266_ID              (9)
 
 void peripheral_init(void);
-void task_looper(void);
+void task_dispatch_looper(void);
+void task_fsm_looper(fsm_t *m_fsm);
+void fsm_init(fsm_t *fsm);
 #endif
