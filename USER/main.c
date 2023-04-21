@@ -11,9 +11,6 @@ int main(void)
     task_fsm_looper(&m_fsm);
   }
 
-  task_dispatch_looper();
-  
-  for( ; ;){
-  }
+  //task_dispatch_looper();
 }
 

@@ -18,13 +18,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include "TIM.h"
-#include "Task_List.h"
+#include "Task_Dispatch.h"
 #include "DS18B20.h"
+#include "Link_List.h"
 
 #define BEEP_ON_OFF             0
 #define ESP_ON_OFF              0
 #define DS18B20_ON_OFF          1
-#define MAX30102_ON_OFF         1
+#define MAX30102_ON_OFF         0
 #define MPU6050_ON_OFF          1
 #define OLED_ON_OFF             1
 #define TIM2_ON_OFF             0
@@ -91,7 +92,6 @@ typedef struct data_buff
 #define ESP8266_ID              (9)
 
 void peripheral_init(void);
-void task_dispatch_looper(void);
 void task_fsm_looper(fsm_t *m_fsm);
 void fsm_init(fsm_t *fsm);
 #endif

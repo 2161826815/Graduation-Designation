@@ -9,15 +9,15 @@ extern list_item hit_task[HIT_LIST_TICK_MAX];
 
 data_buff_t all_data;
 
-static Task_t m_led1_task = TASK_CTOR(led1_task,Period_to_Tick(LED1_Period),LED1_ID);
-static Task_t m_led2_task = TASK_CTOR(led2_task,Period_to_Tick(LED2_Period),LED2_ID);
-static Task_t m_ds18b20_read_task = TASK_CTOR(ds18b20_read_task,Period_to_Tick(DS18B20_READ_Period),DS18B20_READ_ID);
-static Task_t m_ds18b20_convert_task = TASK_CTOR(ds18b20_convert_task,Period_to_Tick(DS18B20_CONVERT_Period),DS18B20_CONVERT_ID);
-static Task_t m_max30102_task = TASK_CTOR(max30102_task,Period_to_Tick(MAX30102_Period),MAX30102_ID);
-static Task_t m_mpu6050_task = TASK_CTOR(mpu6050_task,Period_to_Tick(MPU6050_Period),MPU6050_ID);
-static Task_t m_esp8266_task = TASK_CTOR(esp8266_task,Period_to_Tick(ESP8266_Period),ESP8266_ID);
-static Task_t m_oled_calcu_task = TASK_CTOR(oled_calcu_buffer_task,Period_to_Tick(OLED_CALCU_Period),OLED_CALCU_ID);
-static Task_t m_oled_refresh_task = TASK_CTOR(oled_refresh_task,Period_to_Tick(OLED_REFRESH_Period),OLED_REFRESH_ID);
+static Task_t m_led1_task = DISPATCH_TASK_CTOR(led1_task,Period_to_Tick(LED1_Period),LED1_ID);
+static Task_t m_led2_task = DISPATCH_TASK_CTOR(led2_task,Period_to_Tick(LED2_Period),LED2_ID);
+static Task_t m_ds18b20_read_task = DISPATCH_TASK_CTOR(ds18b20_read_task,Period_to_Tick(DS18B20_READ_Period),DS18B20_READ_ID);
+static Task_t m_ds18b20_convert_task = DISPATCH_TASK_CTOR(ds18b20_convert_task,Period_to_Tick(DS18B20_CONVERT_Period),DS18B20_CONVERT_ID);
+static Task_t m_max30102_task = DISPATCH_TASK_CTOR(max30102_task,Period_to_Tick(MAX30102_Period),MAX30102_ID);
+static Task_t m_mpu6050_task = DISPATCH_TASK_CTOR(mpu6050_task,Period_to_Tick(MPU6050_Period),MPU6050_ID);
+static Task_t m_esp8266_task = DISPATCH_TASK_CTOR(esp8266_task,Period_to_Tick(ESP8266_Period),ESP8266_ID);
+static Task_t m_oled_calcu_task = DISPATCH_TASK_CTOR(oled_calcu_buffer_task,Period_to_Tick(OLED_CALCU_Period),OLED_CALCU_ID);
+static Task_t m_oled_refresh_task = DISPATCH_TASK_CTOR(oled_refresh_task,Period_to_Tick(OLED_REFRESH_Period),OLED_REFRESH_ID);
 
 void peripheral_init(void)
 {
@@ -30,8 +30,8 @@ void peripheral_init(void)
         list_init(&hit_task[i]);
     }
 
-    task_add(&m_led1_task,m_led1_task.period);
-    task_add(&m_led2_task,m_led2_task.period);
+    dispatch_task_add(&m_led1_task,m_led1_task.period);
+    dispatch_task_add(&m_led2_task,m_led2_task.period);
 
     Key_Init();
 
@@ -53,7 +53,7 @@ void peripheral_init(void)
     while(mpu_dmp_get_data(&fir_pitch,&fir_roll,&fir_yaw) != 0);
     DMA_Printf("DMP Init Success\r\n");
 
-    task_add(&m_mpu6050_task,m_mpu6050_task.period);
+    dispatch_task_add(&m_mpu6050_task,m_mpu6050_task.period);
 
 #endif
 
@@ -68,8 +68,8 @@ void peripheral_init(void)
     GUI_ShowString(0,50,(uint8_t*)"SPO2:",8,1);
     OLED_Display();
 
-    task_add(&m_oled_refresh_task,m_oled_refresh_task.period);
-    task_add(&m_oled_calcu_task,m_oled_calcu_task.period);
+    dispatch_task_add(&m_oled_refresh_task,m_oled_refresh_task.period);
+    dispatch_task_add(&m_oled_calcu_task,m_oled_calcu_task.period);
 #endif
 
 #if ESP_ON_OFF
@@ -83,25 +83,9 @@ void peripheral_init(void)
     while(DS18B20_Init());
     DMA_Printf("DS18B20 Init Success\r\n");
 
-    task_add(&m_ds18b20_read_task,m_ds18b20_read_task.period);
-    task_add(&m_ds18b20_convert_task,m_ds18b20_convert_task.period);
+    dispatch_task_add(&m_ds18b20_read_task,m_ds18b20_read_task.period);
+    dispatch_task_add(&m_ds18b20_convert_task,m_ds18b20_convert_task.period);
 #endif
-}
-
-void task_dispatch_looper(void)
-{
-    static uint32_t pre_tick;
-    uint32_t cur_tick;
-
-    tim3_init((TIM_IT_TIME*10-1),7199);
-
-    for(;;){
-        cur_tick = tim_get_tick();
-        if(cur_tick != pre_tick){  
-            pre_tick++;
-            task_dispatch();
-        }
-    } 
 }
 
 void fsm_init(fsm_t *fsm)
@@ -113,10 +97,8 @@ void fsm_init(fsm_t *fsm)
 static uint8_t ds18b20_read_status = 1;
 void task_fsm_looper(fsm_t *m_fsm)   
 {
-    uint8_t i = 0;
     static uint32_t pre_tick;
     uint32_t cur_tick;
-
     switch(m_fsm->cur_state){        //执行任务
     case fsm_idle_state:
         break;
@@ -125,14 +107,14 @@ void task_fsm_looper(fsm_t *m_fsm)
             ds18b20_convert_task();
             ds18b20_read_status = 0;
             pre_tick = get_tick();
-        }   
+        }
         break;
     case fsm_ds18b20_read_state:
         cur_tick = get_tick();
         if(cur_tick-pre_tick >= 480000){
             ds18b20_read_task();
             ds18b20_read_status = 1;
-        }         
+        }
         break;
     case fsm_mpu6050_state:
         mpu6050_task();
@@ -165,11 +147,11 @@ void task_fsm_looper(fsm_t *m_fsm)
         m_fsm->cur_state = fsm_mpu6050_state;
         break;
     case fsm_mpu6050_state:
-        m_fsm->cur_state = fsm_max30102_state;
-        break;
-    case fsm_max30102_state:
         m_fsm->cur_state = fsm_oled_calculate_state;
         break;
+    //case fsm_max30102_state:
+    //    m_fsm->cur_state = fsm_oled_calculate_state;
+    //    break;
     case fsm_oled_calculate_state:
         m_fsm->cur_state = fsm_oled_refresh_state;
         break;
