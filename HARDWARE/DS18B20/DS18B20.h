@@ -4,6 +4,8 @@
 
 #include "stm32f10x.h"
 
+//#define DS18B20_READ_MASK               (1<<0)
+
 #define DS18B20_PORT                    GPIOA
 #define DS18B20_Pin                     GPIO_Pin_7
 #define DS18B20_GPIO_RCC                RCC_APB2Periph_GPIOA
@@ -25,12 +27,12 @@ void DS18B20_Start(void);
 void DS18B20_Write_Byte(uint8_t data);
 void DS18B20_RST(void);
 void DS18B20_Convert(void);
-void ds18b20_read_task(void);
-void da18b20_convert_task(void);
+void ds18b20_convert_task(void);
 uint8_t DS18B20_Init(void);
 uint8_t DS18B20_Read_Byte(void);
 uint8_t DS18B20_Check(void);
-float DS18B20_Read_Temp(void);
+void da18b20_convert_task(void);
+void ds18b20_read_task(void);
 #endif
 
 

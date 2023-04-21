@@ -115,13 +115,12 @@ void EXTI9_5_IRQHandler(void)
   }
 }
 
-
+extern data_buff_t all_data;
 void EXTI15_10_IRQHandler(void)
 {
   //KEY2
   if(EXTI_GetITStatus(EXTI_Line14) == SET){
 
-    EXTI_ClearITPendingBit(EXTI_Line15);
   }
 }
 

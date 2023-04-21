@@ -1,6 +1,6 @@
 #include "MAX30102.h"
 #include "soft_iic.h"
-#include "Task_List.h"
+#include "Task_Dispatch.h"
 #include "init.h"
 
 uint32_t IR_Buffer[500];
@@ -24,10 +24,10 @@ void Max30102_Init(void)
     GPIO_Init(MAX30102_IT_Port,&GPIO_InitStruct);
 
     NVIC_InitTypeDef NVIC_Struct;
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
     NVIC_Struct.NVIC_IRQChannel = EXTI9_5_IRQn;
     NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_Struct.NVIC_IRQChannelSubPriority = 0;
     NVIC_Init(&NVIC_Struct);
 

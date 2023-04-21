@@ -7,6 +7,13 @@
 #include <stdarg.h>
 #include "init.h"
 
+#define USE_DMA 0
+
+#if USE_DMA
+#else
+#define DMA_Printf printf
+#endif
+
 #define Debug_Usart_RCC_GPIO_Port     RCC_APB2Periph_GPIOA
 #define Debug_Usart_RCC_Port          RCC_APB2Periph_USART1
 
@@ -35,5 +42,7 @@ void Debug_USART_init(void);
 void Debug_USART_Send_Byte(USART_TypeDef* USARTX,uint8_t data);
 void Debug_USART_Send_Array(USART_TypeDef* USARTX,uint8_t* array,uint8_t num);
 void Debug_USART_Send_Str(USART_TypeDef* USARTX,uint8_t* str);
+#if USE_DMA
 void DMA_Printf(const char *format,...);
+#endif
 #endif
