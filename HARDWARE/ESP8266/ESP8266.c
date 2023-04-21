@@ -49,6 +49,7 @@ uint8_t ESP8266_Send_Cmd(uint8_t* cmd,const char* ret)
     uint16_t timeout = 50;
     while(timeout--){
         USART_Send_str(ESP8266_USARTX,cmd);
+        delay_ms(20);
         if(strstr((const char*)DMA_RCV_Buffer,ret) != NULL){
             ESP8266_RCV_Clear();
             return 0;

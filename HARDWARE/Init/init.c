@@ -21,6 +21,7 @@ static Task_t m_oled_refresh_task = DISPATCH_TASK_CTOR(oled_refresh_task,Period_
 
 void peripheral_init(void)
 {
+    uint8_t ret;
     sys_tick_init();
     LED_Init();
     Debug_USART_init();
@@ -36,12 +37,27 @@ void peripheral_init(void)
     Key_Init();
 
     BEEP_Init();
-    
+
 #if MAX30102_ON_OFF
     Max30102_Init();
-    task_add(&m_max30102_task,m_max30102_task.period);
+    dispatch_task_add(&m_max30102_task,m_max30102_task.period);
 
     DMA_Printf("Max30102 Init Success\r\n");
+#endif
+   
+#if ESP_ON_OFF
+    ret = ESP8266_Init();
+    DMA_Printf("ret = %d\r\n",ret);
+    if(ret == 0){
+        DMA_Printf("ESP8266 Init Success\r\n");
+        dispatch_task_add(&m_esp8266_task,m_esp8266_task.period);
+    }else{
+        return;
+    }
+    /* while(ESP8266_Init());
+    DMA_Printf("ESP8266 Init Success\r\n"); */
+    
+    
 #endif
 
 #if MPU6050_ON_OFF
@@ -72,13 +88,6 @@ void peripheral_init(void)
     dispatch_task_add(&m_oled_calcu_task,m_oled_calcu_task.period);
 #endif
 
-#if ESP_ON_OFF
-    while(ESP8266_Init());
-    LED_ON(5);
-    task_add(&m_esp8266_task,m_esp8266_task.period);
-    DMA_Printf("ESP8266 Init Success\r\n");
-#endif
-
 #if DS18B20_ON_OFF
     while(DS18B20_Init());
     DMA_Printf("DS18B20 Init Success\r\n");
@@ -99,7 +108,7 @@ void task_fsm_looper(fsm_t *m_fsm)
 {
     static uint32_t pre_tick;
     uint32_t cur_tick;
-    switch(m_fsm->cur_state){        //执行任务
+    switch(m_fsm->cur_state){           //执行任务
     case fsm_idle_state:
         break;
     case fsm_ds18b20_convert_state:
@@ -147,19 +156,19 @@ void task_fsm_looper(fsm_t *m_fsm)
         m_fsm->cur_state = fsm_mpu6050_state;
         break;
     case fsm_mpu6050_state:
+        m_fsm->cur_state = fsm_max30102_state;
+        break;
+    case fsm_max30102_state:
         m_fsm->cur_state = fsm_oled_calculate_state;
         break;
-    //case fsm_max30102_state:
-    //    m_fsm->cur_state = fsm_oled_calculate_state;
-    //    break;
     case fsm_oled_calculate_state:
         m_fsm->cur_state = fsm_oled_refresh_state;
         break;
     case fsm_oled_refresh_state:
+        m_fsm->cur_state = fsm_esp8266_state;
+        break;
+    case fsm_esp8266_state:
         m_fsm->cur_state = fsm_idle_state;
-    //case fsm_esp8266_state:
-    //    i = 0;
-    //    m_fsm->cur_state = fsm_idle_state + i;
         break;
     default:
         break;
