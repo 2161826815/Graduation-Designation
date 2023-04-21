@@ -100,8 +100,6 @@ void task_looper(void)
         if(cur_tick != pre_tick){  
             pre_tick++;
             task_dispatch();
-        }else{
-            continue;
         }
     } 
 }
