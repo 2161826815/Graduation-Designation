@@ -138,9 +138,7 @@ void task_fsm_looper(fsm_t *m_fsm)
         mpu6050_task();
         break;
     case fsm_max30102_state:
-        DMA_Printf("into max30102\r\n");
-        max30102_task();
-        
+        max30102_task();   
         break;
     case fsm_oled_calculate_state:
         oled_calcu_buffer_task();
@@ -168,6 +166,7 @@ void task_fsm_looper(fsm_t *m_fsm)
         break;
     case fsm_mpu6050_state:
         m_fsm->cur_state = fsm_max30102_state;
+        break;
     case fsm_max30102_state:
         m_fsm->cur_state = fsm_oled_calculate_state;
         break;
