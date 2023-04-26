@@ -22,7 +22,7 @@
 #include "DS18B20.h"
 #include "Link_List.h"
 
-#define BEEP_ON_OFF             0
+#define BEEP_ON_OFF             1
 #define ESP_ON_OFF              1
 #define DS18B20_ON_OFF          1
 #define MAX30102_ON_OFF         1

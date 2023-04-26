@@ -1,5 +1,6 @@
 #include "init.h"
 
+extern data_buff_t all_data;
 int main(void)
 {
   peripheral_init();
