@@ -16,6 +16,7 @@
 #define read_slave_addr                             0xAF
 
 #define interrupt_status_1_rigister                 0x00
+#define interrupt_status_2_rigister                 0x01
 #define interrupt_enable_1_rigister                 0x02
 #define interrupt_enable_2_rigister                 0x03
 #define fifo_wr_ptr_rigister                        0x04

@@ -48,6 +48,7 @@ void Max30102_Init(void)
 
     Max30102_Reset();
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_1_rigister,0xC0,1);  //Enable A_FULL and PPG_RDY
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_2_rigister,0x00,1);  //Enable A_FULL and PPG_RDY
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_wr_ptr_rigister,0x00,1);         //Write_prt reset
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,over_flow_cnt_rigister,0x00,1);       //over_flow_ptr reset
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_rd_ptr_rigister,0x00,1);         //read_ptr reset
@@ -65,6 +66,7 @@ void Max30102_Read_FIFO(uint32_t *RED,uint32_t *IR)
     uint32_t red_temp,ir_temp;
     uint8_t data_array[6];
     I2C_read_Bytes(MAX30102_I2C,read_slave_addr,interrupt_status_1_rigister,&IT_Status,1); //clead IT IT_Status
+    I2C_read_Bytes(MAX30102_I2C,read_slave_addr,interrupt_status_2_rigister,&IT_Status,1); //clead IT IT_Status
     I2C_read_Bytes(MAX30102_I2C,read_slave_addr,fifo_data_rigister,data_array,6);
 
     red_temp = (data_array[0] << 16) + (data_array[1] << 8) + data_array[2];
@@ -143,13 +145,12 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
     }
     //calculate heart rate and SpO2 after first 500 samples (first 5 seconds of samples)
     maxim_heart_rate_and_oxygen_saturation(IR_Buffer,IR_Buffrt_Length,RED_Buffer,SPO2_Value,&SPO2_Valid,HR_Value,&HR_Valid);
-    if(!((((HR_Valid==1) && (((*HR_Value)<120))) && ((*HR_Value)>55)))){
+    if(!((((HR_Valid==1) && (((*HR_Value)<120))) && ((*HR_Value)>0)))){
         *HR_Value = 0;
     }
-    if(!((SPO2_Valid==1 && (((*SPO2_Value)<100) &&((*SPO2_Value)>90))))){
-        *HR_Value = 0;
+    if(!((SPO2_Valid==1 && (((*SPO2_Value)<100) &&((*SPO2_Value)>80))))){
         *SPO2_Value = 0;
-    } 
+    }
 }
 
 
