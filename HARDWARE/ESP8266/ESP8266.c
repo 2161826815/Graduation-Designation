@@ -143,7 +143,7 @@ uint8_t ESP8266_Pub_Data(float data,int type)
 1,0\r\n",data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            DMA_Printf("Pub Temperature Success\r\n");
+            //DMA_Printf("Pub Temperature Success\r\n");
         }else{
             return 1;
         }
@@ -158,7 +158,7 @@ uint8_t ESP8266_Pub_Data(float data,int type)
 1,0\r\n",(uint32_t)data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            DMA_Printf("Pub HR Success\r\n");
+            //DMA_Printf("Pub HR Success\r\n");
         }else{
             return 1;
         }
@@ -173,7 +173,7 @@ uint8_t ESP8266_Pub_Data(float data,int type)
 1,0\r\n",(uint32_t)data);
 
         if(ESP8266_Send_Cmd((uint8_t*)Pub_Data,"OK") == 0){
-            DMA_Printf("Pub SPO2 Success\r\n");
+            //DMA_Printf("Pub SPO2 Success\r\n");
         }else{
             return 1;
         }  

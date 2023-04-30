@@ -179,7 +179,7 @@ void ds18b20_read_task(void)
 {
     all_data.temperature =  ((int)(DS18B20_Read_Temp()*100))/(100.0);
     READ_STATUS = 0;   //读取完成,发送转换指令
-    printf("temp:%.2f\r\n",all_data.temperature);
+    //printf("temp:%.2f\r\n",all_data.temperature);
 #if BEEP_ON_OFF
     if(all_data.temperature > 38){
         BEEP_ON();

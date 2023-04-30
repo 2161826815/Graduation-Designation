@@ -29,7 +29,7 @@
 
 #define led1_pulse_amplitude_rigister               0x0C
 #define led2_pulse_amplitude_rigister               0x0D
-//#define proximity_mode_led_pulse_amplitude_rigister 0x10
+#define proximity_mode_led_pulse_amplitude_rigister 0x10
 //#define Multi_LED_Mode_Control_Registers_slot1_2    0x11
 //#define Multi_LED_Mode_Control_Registers_slot1_2    0x12
 //#define Die_Temp_Integer                            0x1F

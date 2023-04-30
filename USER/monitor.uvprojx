@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_MD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\USER;..\CORE;..\STM32F10x_FWLib\inc;..\HARDWARE\LED;..\SYSTEM;..\HARDWARE\OLED;..\HARDWARE\MAX30102;..\HARDWARE\KEY;..\HARDWARE\MPU6050;..\HARDWARE\MPU6050\eMPL;..\HARDWARE\ESP8266;..\HARDWARE\ESP8266\NET;..\HARDWARE\BEEP;..\HARDWARE\DS18B20;..\HARDWARE\Init;..\SYSTEM\Hard_I2C;..\SYSTEM\Soft_IIC;..\SYSTEM\Sys;..\SYSTEM\SysTick;..\SYSTEM\Task_List;..\SYSTEM\TIM;..\SYSTEM\USART</IncludePath>
+              <IncludePath>..\USER;..\CORE;..\STM32F10x_FWLib\inc;..\HARDWARE\LED;..\SYSTEM;..\HARDWARE\OLED;..\HARDWARE\MAX30102;..\HARDWARE\KEY;..\HARDWARE\MPU6050;..\HARDWARE\MPU6050\eMPL;..\HARDWARE\ESP8266;..\HARDWARE\ESP8266\NET;..\HARDWARE\BEEP;..\HARDWARE\DS18B20;..\HARDWARE\Init;..\SYSTEM\Hard_I2C;..\SYSTEM\Soft_IIC;..\SYSTEM\Sys;..\SYSTEM\SysTick;..\SYSTEM\Link_List;..\SYSTEM\TIM;..\SYSTEM\USART;..\SYSTEM\Task_Fsm;..\SYSTEM\Task_Dispatch</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -639,11 +639,6 @@
               <FilePath>..\SYSTEM\SysTick\SysTick.c</FilePath>
             </File>
             <File>
-              <FileName>Task_List.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SYSTEM\Task_List\Task_List.c</FilePath>
-            </File>
-            <File>
               <FileName>TIM.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SYSTEM\TIM\TIM.c</FilePath>
@@ -652,6 +647,21 @@
               <FileName>USART.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SYSTEM\USART\USART.c</FilePath>
+            </File>
+            <File>
+              <FileName>Task_Dispatch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\Task_Dispatch\Task_Dispatch.c</FilePath>
+            </File>
+            <File>
+              <FileName>Task_Fsm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\Task_Fsm\Task_Fsm.c</FilePath>
+            </File>
+            <File>
+              <FileName>Link_List.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\Link_List\Link_List.c</FilePath>
             </File>
           </Files>
         </Group>

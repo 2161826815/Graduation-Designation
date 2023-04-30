@@ -3,6 +3,7 @@
 #include "Task_Dispatch.h"
 #include "init.h"
 
+extern data_buff_t all_data;
 uint32_t IR_Buffer[500];
 uint32_t RED_Buffer[500];
 int32_t IR_Buffrt_Length;
@@ -11,18 +12,20 @@ Task_t m_max30102_task;
 void Max30102_Reset(void)
 {
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x40,1);         //RESET Bit To 1
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x40,1);         //RESET Bit To 1
 }
 
 void Max30102_Init(void)
 {
+
     GPIO_InitTypeDef GPIO_InitStruct;
-    EXTI_InitTypeDef EXTI_InitStruct;
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
     GPIO_InitStruct.GPIO_Pin = MAX30102_IT_Pin;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(MAX30102_IT_Port,&GPIO_InitStruct);
-
+    GPIO_SetBits(MAX30102_IT_Port,MAX30102_IT_Pin);
+#if 0
     NVIC_InitTypeDef NVIC_Struct;
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
     NVIC_Struct.NVIC_IRQChannel = EXTI9_5_IRQn;
@@ -34,12 +37,13 @@ void Max30102_Init(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO,ENABLE);
     GPIO_EXTILineConfig(GPIO_PortSourceGPIOB,MAX30102_IT_Pin);
 
+    EXTI_InitTypeDef EXTI_InitStruct;
     EXTI_InitStruct.EXTI_Line = EXTI_Line5;
     EXTI_InitStruct.EXTI_LineCmd = ENABLE;
     EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
     EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
     EXTI_Init(&EXTI_InitStruct);
-    
+#endif
     I2C_Config();
 
     Max30102_Reset();
@@ -47,11 +51,12 @@ void Max30102_Init(void)
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_wr_ptr_rigister,0x00,1);         //Write_prt reset
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,over_flow_cnt_rigister,0x00,1);       //over_flow_ptr reset
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_rd_ptr_rigister,0x00,1);         //read_ptr reset
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_config_rigister,0x07,1);         //No average,No Rolls,Almost Full = 17 
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_config_rigister,0x0f,1);         //No average,No Rolls,Almost Full = 17 
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x03,1);         //Heart Rate and SPO2 Mode
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,spO2_config_rigister,0x27,1);         //SpO2 ADC Range=4096nA,SPO2 Rate=100Hz,Pulse Width=400ns
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,led1_pulse_amplitude_rigister,0x24,1);//almost 7mA for LED1
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,led2_pulse_amplitude_rigister,0x24,1);//almost 7mA for LED2
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,led1_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED1
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,led2_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED2
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,proximity_mode_led_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED2
 }
 
 void Max30102_Read_FIFO(uint32_t *RED,uint32_t *IR)
@@ -138,15 +143,23 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
     }
     //calculate heart rate and SpO2 after first 500 samples (first 5 seconds of samples)
     maxim_heart_rate_and_oxygen_saturation(IR_Buffer,IR_Buffrt_Length,RED_Buffer,SPO2_Value,&SPO2_Valid,HR_Value,&HR_Valid);
-    if(!((((HR_Valid==1) && (((*HR_Value)<120))) && ((*HR_Value)>55)) && (SPO2_Valid==1 && (((*SPO2_Value)<100) &&((*SPO2_Value)>90))))){
+    if(!((((HR_Valid==1) && (((*HR_Value)<120))) && ((*HR_Value)>55)))){
+        *HR_Value = 0;
+    }
+    if(!((SPO2_Valid==1 && (((*SPO2_Value)<100) &&((*SPO2_Value)>90))))){
         *HR_Value = 0;
         *SPO2_Value = 0;
     } 
 }
 
-extern data_buff_t all_data;
+
 void max30102_task(void)
 {
+    /* static uint8_t i = 1;
+    while(i){
+        Max30102_Get_First_Sample(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
+        i--;
+    } */
     Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
     DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
 }
