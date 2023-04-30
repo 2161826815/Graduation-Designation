@@ -37,7 +37,6 @@ void peripheral_init(void)
     Key_Init();
 
     BEEP_Init();
-
 #if MAX30102_ON_OFF
     Max30102_Init();
     dispatch_task_add(&m_max30102_task,m_max30102_task.period);

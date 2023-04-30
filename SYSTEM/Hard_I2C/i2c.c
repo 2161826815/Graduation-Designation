@@ -8,10 +8,10 @@ void I2C_Config(void)
     I2C_InitTypeDef  I2C_InitStruct;
 
     RCC_APB2PeriphClockCmd(I2C_GPIO_CLK,ENABLE);
-    RCC_APB1PeriphClockCmd(MAX30102_I2C_CLK | MPU6050_I2C_CLK,ENABLE);
+    RCC_APB1PeriphClockCmd(MAX30102_I2C_CLK | OLED_I2C_CLK,ENABLE);
 
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF_OD;
-    GPIO_InitStruct.GPIO_Pin = MAX30102_SCL | MAX30102_SDA | MPU6050_SCL | MPU6050_SDA;
+    GPIO_InitStruct.GPIO_Pin = MAX30102_SCL | MAX30102_SDA | OLED_SCL | OLED_SDA;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(I2C_GPIO_Port,&GPIO_InitStruct);
     
@@ -22,10 +22,10 @@ void I2C_Config(void)
     I2C_InitStruct.I2C_Mode = I2C_Mode_I2C;
     I2C_InitStruct.I2C_OwnAddress1 = I2C_OwnDress;
     I2C_Init(MAX30102_I2C,&I2C_InitStruct);
-    I2C_Init(MPU6050_I2C,&I2C_InitStruct);
+    I2C_Init(OLED_I2C,&I2C_InitStruct);
 
     I2C_Cmd(MAX30102_I2C,ENABLE);
-    I2C_Cmd(MPU6050_I2C,ENABLE);
+    I2C_Cmd(OLED_I2C,ENABLE);
 
 }
 
