@@ -37,11 +37,9 @@ void peripheral_init(void)
     Key_Init();
 
     BEEP_Init();
-
 #if MAX30102_ON_OFF
     Max30102_Init();
     dispatch_task_add(&m_max30102_task,m_max30102_task.period);
-
     DMA_Printf("Max30102 Init Success\r\n");
 #endif
    
@@ -139,7 +137,6 @@ void task_fsm_looper(fsm_t *m_fsm)
         break;
     case fsm_esp8266_state:
         esp8266_task();
-        DMA_Printf("esp8266\r\n");
         break;
     default:
         break;

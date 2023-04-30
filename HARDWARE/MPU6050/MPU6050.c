@@ -129,6 +129,7 @@ extern data_buff_t all_data;
 void mpu6050_task(void)
 {	
 	while(mpu_dmp_get_data(&all_data.pitch,&all_data.roll,&all_data.yaw));
+	//printf("pitch:%.2f,roll:%.2f,yaw:%.2f\r\n",all_data.pitch,all_data.roll,all_data.yaw);
 	if(all_data.pitch !=0 && all_data.roll!= 0 && all_data.yaw != 0){
 		if(all_data.pitch-fir_pitch > 30 || all_data.pitch-fir_pitch < -30 ||	\
 		 all_data.roll-fir_roll > 30 || all_data.roll-fir_roll < -30){
@@ -137,7 +138,7 @@ void mpu6050_task(void)
 			BEEP_OFF();
 		}
 	}else{
-		LED_OFF(3);
+		
 	}
 }
 
