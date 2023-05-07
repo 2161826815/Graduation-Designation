@@ -1,18 +1,95 @@
 #include "MAX30102.h"
-#include "soft_iic.h"
 #include "Task_Dispatch.h"
 #include "init.h"
+#include "max_soft_iic.h"
 
 extern data_buff_t all_data;
+uint32_t pre_data;
 uint32_t IR_Buffer[500];
 uint32_t RED_Buffer[500];
 int32_t IR_Buffrt_Length;
 Task_t m_max30102_task;
 
+uint8_t max30102_Bus_Write(uint8_t Register_Address, uint8_t Data)
+{
+	Max_Soft_IIC_Start();
+	Max_Soft_IIC_Send_Byte(write_slave_addr | I2C_WR);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	Max_Soft_IIC_Send_Byte(Register_Address);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	Max_Soft_IIC_Send_Byte(Data);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	Max_Soft_IIC_Stop();
+	return 1;
+cmd_fail:
+	Max_Soft_IIC_Stop();
+	return 0;
+}
+uint8_t max30102_Bus_Read(uint8_t Register_Address)
+{
+	uint8_t  data;
+	Max_Soft_IIC_Start();
+	Max_Soft_IIC_Send_Byte(write_slave_addr | I2C_WR);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	Max_Soft_IIC_Send_Byte((uint8_t)Register_Address);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	Max_Soft_IIC_Start();
+	Max_Soft_IIC_Send_Byte(write_slave_addr | I2C_RD);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	data = Max_Soft_IIC_Rcv_Byte(0);
+	Max_Soft_IIC_NAck();
+	Max_Soft_IIC_Stop();
+	return data;
+cmd_fail:
+	Max_Soft_IIC_Stop();
+	return 0;
+}
+
+void max30102_FIFO_ReadBytes(uint8_t Register_Address,uint8_t* Data)
+{	
+	max30102_Bus_Read(interrupt_status_1_rigister);
+	max30102_Bus_Read(interrupt_status_2_rigister);
+	Max_Soft_IIC_Start();
+	Max_Soft_IIC_Send_Byte(write_slave_addr | I2C_WR);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	Max_Soft_IIC_Send_Byte((uint8_t)Register_Address);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	Max_Soft_IIC_Start();
+	Max_Soft_IIC_Send_Byte(write_slave_addr | I2C_RD);
+	if (Max_Soft_IIC_Wait_Ack() != 0){
+		goto cmd_fail;
+	}
+	Data[0] = Max_Soft_IIC_Rcv_Byte(1);	
+	Data[1] = Max_Soft_IIC_Rcv_Byte(1);	
+	Data[2] = Max_Soft_IIC_Rcv_Byte(1);	
+	Data[3] = Max_Soft_IIC_Rcv_Byte(1);
+	Data[4] = Max_Soft_IIC_Rcv_Byte(1);	
+	Data[5] = Max_Soft_IIC_Rcv_Byte(0);
+	Max_Soft_IIC_Stop();
+cmd_fail:
+	Max_Soft_IIC_Stop();
+}
+
 void Max30102_Reset(void)
 {
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x40,1);         //RESET Bit To 1
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x40,1);         //RESET Bit To 1
+    max30102_Bus_Write(mode_config_rigister,0x40);
+	max30102_Bus_Write(mode_config_rigister,0x40);
 }
 
 void Max30102_Init(void)
@@ -44,20 +121,21 @@ void Max30102_Init(void)
     EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
     EXTI_Init(&EXTI_InitStruct);
 #endif
-    I2C_Config();
+    //I2C_Config();
+    Max_Soft_IIC_Init();
 
     Max30102_Reset();
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_1_rigister,0xC0,1);  //Enable A_FULL and PPG_RDY
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_2_rigister,0x00,1);  //Enable A_FULL and PPG_RDY
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_wr_ptr_rigister,0x00,1);         //Write_prt reset
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,over_flow_cnt_rigister,0x00,1);       //over_flow_ptr reset
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_rd_ptr_rigister,0x00,1);         //read_ptr reset
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_config_rigister,0x0f,1);         //No average,No Rolls,Almost Full = 17 
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x03,1);         //Heart Rate and SPO2 Mode
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,spO2_config_rigister,0x27,1);         //SpO2 ADC Range=4096nA,SPO2 Rate=100Hz,Pulse Width=400ns
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,led1_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED1
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,led2_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED2
-    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,proximity_mode_led_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED2
+    max30102_Bus_Write(interrupt_enable_1_rigister,0xC0);  //Enable A_FULL and PPG_RDY
+    max30102_Bus_Write(interrupt_enable_2_rigister,0x00);  //Enable A_FULL and PPG_RDY
+    max30102_Bus_Write(fifo_wr_ptr_rigister,0x00);         //Write_prt reset
+    max30102_Bus_Write(over_flow_cnt_rigister,0x00);       //over_flow_ptr reset
+    max30102_Bus_Write(fifo_rd_ptr_rigister,0x00);         //read_ptr reset
+    max30102_Bus_Write(fifo_config_rigister,0x0f);         //No average,No Rolls,Almost Full = 17 
+    max30102_Bus_Write(mode_config_rigister,0x03);         //Heart Rate and SPO2 Mode
+    max30102_Bus_Write(spO2_config_rigister,0x27);         //SpO2 ADC Range=4096nA,SPO2 Rate=100Hz,Pulse Width=400ns
+    max30102_Bus_Write(led1_pulse_amplitude_rigister,0x7f);//almost 7mA for LED1
+    max30102_Bus_Write(led2_pulse_amplitude_rigister,0x7f);//almost 7mA for LED2
+    max30102_Bus_Write(proximity_mode_led_pulse_amplitude_rigister,0x7f);//almost 7mA for LED2
 }
 
 void Max30102_Read_FIFO(uint32_t *RED,uint32_t *IR)
@@ -65,9 +143,11 @@ void Max30102_Read_FIFO(uint32_t *RED,uint32_t *IR)
     uint8_t IT_Status;
     uint32_t red_temp,ir_temp;
     uint8_t data_array[6];
-    I2C_read_Bytes(MAX30102_I2C,read_slave_addr,interrupt_status_1_rigister,&IT_Status,1); //clead IT IT_Status
-    I2C_read_Bytes(MAX30102_I2C,read_slave_addr,interrupt_status_2_rigister,&IT_Status,1); //clead IT IT_Status
-    I2C_read_Bytes(MAX30102_I2C,read_slave_addr,fifo_data_rigister,data_array,6);
+
+    Max_Soft_IIC_Read_One_Byte(read_slave_addr,interrupt_status_1_rigister,&IT_Status); //clead IT IT_Status
+    Max_Soft_IIC_Read_One_Byte(read_slave_addr,interrupt_status_2_rigister,&IT_Status); //clead IT IT_Status
+
+    max30102_FIFO_ReadBytes(fifo_data_rigister,data_array);
 
     red_temp = (data_array[0] << 16) + (data_array[1] << 8) + data_array[2];
     ir_temp  = (data_array[3] << 16) + (data_array[4] << 8) + data_array[5];
@@ -95,6 +175,7 @@ void Max30102_Get_First_Sample(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,in
         if(max1_data < RED_Buffer[i])
             max1_data = RED_Buffer[i];
     }
+    pre_data = RED_Buffer[i];
     maxim_heart_rate_and_oxygen_saturation(IR_Buffer,IR_Buffrt_Length,RED_Buffer,SPO2_Value,&SPO2_Valid,HR_Value,&HR_Valid);
 }
 
@@ -105,7 +186,6 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
     int8_t SPO2_Valid;
     int8_t HR_Valid;
     int32_t brightness;
-    uint32_t pre_data;
     uint32_t min1_data=0x3ffff;
     uint32_t max1_data=0;
     uint16_t IR_Buffrt_Length = 500;
@@ -122,7 +202,9 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
     //take 100 sets of samples before calculating the heart rate.
     for(i=400;i<IR_Buffrt_Length;i++){
         pre_data = RED_Buffer[i-1];
-        while(MAX30102_IT_STATUS() == 1); //until Intertupt assert
+        while(MAX30102_IT_STATUS() == 1){
+
+        } //until Intertupt assert
         Max30102_Read_FIFO(RED,IR); //read FIFO data
         IR_Buffer[i]  = *IR;
         RED_Buffer[i] = *RED;
@@ -145,12 +227,12 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
     }
     //calculate heart rate and SpO2 after first 500 samples (first 5 seconds of samples)
     maxim_heart_rate_and_oxygen_saturation(IR_Buffer,IR_Buffrt_Length,RED_Buffer,SPO2_Value,&SPO2_Valid,HR_Value,&HR_Valid);
-    if(!((((HR_Valid==1) && (((*HR_Value)<120))) && ((*HR_Value)>0)))){
+    /* if(!((((HR_Valid==1) && (((*HR_Value)<120))) && ((*HR_Value)>0)))){
         *HR_Value = 0;
     }
     if(!((SPO2_Valid==1 && (((*SPO2_Value)<100) &&((*SPO2_Value)>80))))){
         *SPO2_Value = 0;
-    }
+    } */
 }
 
 

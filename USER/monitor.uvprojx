@@ -663,6 +663,11 @@
               <FileType>1</FileType>
               <FilePath>..\SYSTEM\Link_List\Link_List.c</FilePath>
             </File>
+            <File>
+              <FileName>max_soft_iic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\Soft_IIC\max_soft_iic.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

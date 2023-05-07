@@ -39,6 +39,7 @@ void peripheral_init(void)
     BEEP_Init();
 #if MAX30102_ON_OFF
     Max30102_Init();
+    Max30102_Get_First_Sample(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
     dispatch_task_add(&m_max30102_task,m_max30102_task.period);
     DMA_Printf("Max30102 Init Success\r\n");
 #endif
