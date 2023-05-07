@@ -156,11 +156,11 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
 
 void max30102_task(void)
 {
-    /* static uint8_t i = 1;
+    static uint8_t i = 1;
     while(i){
         Max30102_Get_First_Sample(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
         i--;
-    } */
+    }
     Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
     DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
 }
