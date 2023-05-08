@@ -72,11 +72,9 @@ uint8_t Soft_IIC_Wait_Ack(void)
 	IIC_Delay();
 	IIC_SCL = 1;
 	IIC_Delay();
-	while (READ_SDA)
-	{
+	while (READ_SDA){
 		ucErrTime++;
-		if (ucErrTime > 250)
-		{
+		if (ucErrTime > 250){
 			Soft_IIC_Stop();
 			return 1;
 		}
@@ -107,15 +105,14 @@ void Soft_IIC_NAck(void)
 	IIC_SCL = 0;
 }
 
-void Soft_IIC_Send_Byte(uint8_t txd)
+void Soft_IIC_Send_Byte(uint8_t data)
 {
 	uint8_t t;
 	Soft_SDA_OUT();
 	IIC_SCL = 0;
-	for (t = 0; t < 8; t++)
-	{
-		IIC_SDA = (txd & 0x80) >> 7;
-		txd <<= 1;
+	for (t = 0; t < 8; t++){
+		IIC_SDA = (data & 0x80) >> 7;
+		data <<= 1;
 		IIC_SCL = 1;
 		IIC_Delay();
 		IIC_SCL = 0;
@@ -127,8 +124,7 @@ uint8_t Soft_IIC_Rcv_Byte(unsigned char ack)
 {
 	unsigned char i, receive = 0;
 	Soft_SDA_IN();
-	for (i = 0; i < 8; i++)
-	{
+	for (i = 0; i < 8; i++){
 		IIC_SCL = 0;
 		IIC_Delay();
 		IIC_SCL = 1;
@@ -148,16 +144,14 @@ uint8_t Soft_IIC_Write_One_Byte(uint8_t addr, uint8_t reg, uint8_t data)
 {
 	Soft_IIC_Start();
 	Soft_IIC_Send_Byte((addr << 1) | 0);
-	if (Soft_IIC_Wait_Ack())
-	{
+	if (Soft_IIC_Wait_Ack()){
 		Soft_IIC_Stop();
 		return 1;
 	}
 	Soft_IIC_Send_Byte(reg);
 	Soft_IIC_Wait_Ack();
 	Soft_IIC_Send_Byte(data);
-	if (Soft_IIC_Wait_Ack())
-	{
+	if (Soft_IIC_Wait_Ack()){
 		Soft_IIC_Stop();
 		return 1;
 	}
@@ -170,18 +164,15 @@ uint8_t Soft_IIC_Write_Bytes(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *bu
 	uint8_t i;
 	Soft_IIC_Start();
 	Soft_IIC_Send_Byte((addr << 1) | 0);
-	if (Soft_IIC_Wait_Ack())
-	{
+	if (Soft_IIC_Wait_Ack()){
 		Soft_IIC_Stop();
 		return 1;
 	}
 	Soft_IIC_Send_Byte(reg);
 	Soft_IIC_Wait_Ack();
-	for (i = 0; i < len; i++)
-	{
+	for (i = 0; i < len; i++){
 		Soft_IIC_Send_Byte(buf[i]);
-		if (Soft_IIC_Wait_Ack())
-		{
+		if (Soft_IIC_Wait_Ack()){
 			Soft_IIC_Stop();
 			return 1;
 		}
@@ -193,8 +184,7 @@ uint8_t Soft_IIC_Read_Bytes(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf
 {
 	Soft_IIC_Start();
 	Soft_IIC_Send_Byte((addr << 1) | 0);
-	if (Soft_IIC_Wait_Ack())
-	{
+	if (Soft_IIC_Wait_Ack()){
 		Soft_IIC_Stop();
 		return 1;
 	}
@@ -203,8 +193,7 @@ uint8_t Soft_IIC_Read_Bytes(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf
 	Soft_IIC_Start();
 	Soft_IIC_Send_Byte((addr << 1) | 1);
 	Soft_IIC_Wait_Ack();
-	while (len)
-	{
+	while (len){
 		if (len == 1)
 			*buf = Soft_IIC_Rcv_Byte(0);
 		else
