@@ -145,7 +145,7 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
     }
     //calculate heart rate and SpO2 after first 500 samples (first 5 seconds of samples)
     maxim_heart_rate_and_oxygen_saturation(IR_Buffer,IR_Buffrt_Length,RED_Buffer,SPO2_Value,&SPO2_Valid,HR_Value,&HR_Valid);
-    if(!((((HR_Valid==1) && (((*HR_Value)<120))) && ((*HR_Value)>0)))){
+    if(!((((HR_Valid==1) && (((*HR_Value)<150))) && ((*HR_Value)>50)))){
         *HR_Value = 0;
     }
     if(!((SPO2_Valid==1 && (((*SPO2_Value)<100) &&((*SPO2_Value)>80))))){
@@ -156,11 +156,11 @@ void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *
 
 void max30102_task(void)
 {
-    /* static uint8_t i = 1;
+    static uint8_t i = 1;
     while(i){
         Max30102_Get_First_Sample(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
         i--;
-    } */
+    }
     Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
     DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
 }
