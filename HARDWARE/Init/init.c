@@ -127,7 +127,7 @@ void task_fsm_looper(fsm_t *m_fsm)
         mpu6050_task();
         break;
     case fsm_max30102_state:
-        max30102_task();   
+        max30102_task();
         break;
     case fsm_oled_calculate_state:
         oled_calcu_buffer_task();

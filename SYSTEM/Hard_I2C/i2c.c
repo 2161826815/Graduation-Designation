@@ -49,6 +49,7 @@ void I2C_write_OneByte(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,uin
 
     I2C_GenerateSTOP(I2Cx,ENABLE);
 
+    delay_us(4);
 }
 
 void I2C_write_Bytes(I2C_TypeDef* I2Cx,uint8_t slave_addr,uint8_t reg_addr,const uint8_t *data,uint8_t num)

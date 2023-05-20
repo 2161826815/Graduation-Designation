@@ -45,7 +45,6 @@ void Max30102_Init(void)
     EXTI_Init(&EXTI_InitStruct);
 #endif
     I2C_Config();
-
     Max30102_Reset();
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_1_rigister,0xC0,1);  //Enable A_FULL and PPG_RDY
     I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_2_rigister,0x00,1);  //Enable A_FULL and PPG_RDY
