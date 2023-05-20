@@ -38,7 +38,7 @@ void peripheral_init(void)
 
     BEEP_Init();
 #if MAX30102_ON_OFF
-    Max30102_Init();
+    max30102_init();
     dispatch_task_add(&m_max30102_task,m_max30102_task.period);
     DMA_Printf("Max30102 Init Success\r\n");
 #endif
@@ -127,7 +127,7 @@ void task_fsm_looper(fsm_t *m_fsm)
         mpu6050_task();
         break;
     case fsm_max30102_state:
-        max30102_task();   
+        max30102_task();
         break;
     case fsm_oled_calculate_state:
         oled_calcu_buffer_task();
