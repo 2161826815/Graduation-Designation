@@ -38,7 +38,7 @@ void peripheral_init(void)
 
     BEEP_Init();
 #if MAX30102_ON_OFF
-    max30102_init();
+    Max30102_Init();
     dispatch_task_add(&m_max30102_task,m_max30102_task.period);
     DMA_Printf("Max30102 Init Success\r\n");
 #endif

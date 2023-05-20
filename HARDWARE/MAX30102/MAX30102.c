@@ -1,376 +1,166 @@
-#include "max30102.h"
-#include "max_iic.h"
-#include "SysTick.h"
-
-u8 max30102_Bus_Write(u8 Register_Address, u8 Word_Data)
-{
-	IIC_Start();
-
-	IIC_Send_Byte(max30102_WR_address | I2C_WR);
-
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	IIC_Send_Byte(Register_Address);
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	IIC_Send_Byte(Word_Data);
-
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	IIC_Stop();
-	return 1;
-
-cmd_fail:
-	IIC_Stop();
-	return 0;
-}
-
-
-
-u8 max30102_Bus_Read(u8 Register_Address)
-{
-	u8  data;
-
-	IIC_Start();
-
-	IIC_Send_Byte(max30102_WR_address | I2C_WR);
-
-
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	IIC_Send_Byte((uint8_t)Register_Address);
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	IIC_Start();
-
-	IIC_Send_Byte(max30102_WR_address | I2C_RD);
-
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	{
-		data = IIC_Read_Byte(0);
-
-		IIC_NAck();
-	}
-
-	IIC_Stop();
-	return data;
-
-cmd_fail:
-	IIC_Stop();
-	return 0;
-}
-
-
-void max30102_FIFO_ReadWords(u8 Register_Address,u16 Word_Data[][2],u8 count)
-{
-	u8 i=0;
-	u8 no = count;
-	u8 data1, data2;
-
-	IIC_Start();
-
-
-	IIC_Send_Byte(max30102_WR_address | I2C_WR);
-
-
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	IIC_Send_Byte((uint8_t)Register_Address);
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-	
-
-	IIC_Start();
-
-	IIC_Send_Byte(max30102_WR_address | I2C_RD);
-
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	while (no)
-	{
-		data1 = IIC_Read_Byte(0);	
-		IIC_Ack();
-		data2 = IIC_Read_Byte(0);
-		IIC_Ack();
-		Word_Data[i][0] = (((u16)data1 << 8) | data2);
-
-		
-		data1 = IIC_Read_Byte(0);	
-		IIC_Ack();
-		data2 = IIC_Read_Byte(0);
-		if(1==no)
-			IIC_NAck();
-		else
-			IIC_Ack();
-		Word_Data[i][1] = (((u16)data1 << 8) | data2); 
-
-		no--;	
-		i++;
-	}
-
-	IIC_Stop();
-
-cmd_fail:
-	IIC_Stop();
-}
-
-void max30102_FIFO_ReadBytes(u8 Register_Address,u8* Data)
-{	
-	max30102_Bus_Read(REG_INTR_STATUS_1);
-	max30102_Bus_Read(REG_INTR_STATUS_2);
-	
-
-	IIC_Start();
-
-
-	IIC_Send_Byte(max30102_WR_address | I2C_WR);
-
-
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-
-	IIC_Send_Byte((uint8_t)Register_Address);
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-	
-	IIC_Start();
-
-	IIC_Send_Byte(max30102_WR_address | I2C_RD);
-
-
-	if (IIC_Wait_Ack() != 0)
-	{
-		goto cmd_fail;
-	}
-
-	Data[0] = IIC_Read_Byte(1);	
-	Data[1] = IIC_Read_Byte(1);	
-	Data[2] = IIC_Read_Byte(1);	
-	Data[3] = IIC_Read_Byte(1);
-	Data[4] = IIC_Read_Byte(1);	
-	Data[5] = IIC_Read_Byte(0);
-
-	IIC_Stop();
-
-cmd_fail: 
-	IIC_Stop();
-
-}
-
-void max30102_init(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-
- 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);	
-	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_14;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
- 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	
-	IIC_Init();
-	
-	max30102_reset();
-
-	max30102_Bus_Write(REG_INTR_ENABLE_1,0xc0);	// INTR setting
-	max30102_Bus_Write(REG_INTR_ENABLE_2,0x00);
-	max30102_Bus_Write(REG_FIFO_WR_PTR,0x00);  	//FIFO_WR_PTR[4:0]
-	max30102_Bus_Write(REG_OVF_COUNTER,0x00);  	//OVF_COUNTER[4:0]
-	max30102_Bus_Write(REG_FIFO_RD_PTR,0x00);  	//FIFO_RD_PTR[4:0]
-	max30102_Bus_Write(REG_FIFO_CONFIG,0x0f);  	//sample avg = 1, fifo rollover=false, fifo almost full = 17
-	max30102_Bus_Write(REG_MODE_CONFIG,0x03);  	//0x02 for Red only, 0x03 for SpO2 mode 0x07 multimode LED
-	max30102_Bus_Write(REG_SPO2_CONFIG,0x27);  	// SPO2_ADC range = 4096nA, SPO2 sample rate (100 Hz), LED pulseWidth (400uS)  
-	max30102_Bus_Write(REG_LED1_PA,0x24);   	//Choose value for ~ 7mA for LED1
-	max30102_Bus_Write(REG_LED2_PA,0x24);   	// Choose value for ~ 7mA for LED2
-	max30102_Bus_Write(REG_PILOT_PA,0x7f);   	// Choose value for ~ 25mA for Pilot LED
-
-}
-
-void max30102_reset(void)
-{
-	max30102_Bus_Write(REG_MODE_CONFIG,0x40);
-	max30102_Bus_Write(REG_MODE_CONFIG,0x40);
-}
-
-void maxim_max30102_write_reg(uint8_t uch_addr, uint8_t uch_data)
-{
-	IIC_Write_One_Byte(I2C_WRITE_ADDR,uch_addr,uch_data);
-}
-
-void maxim_max30102_read_reg(uint8_t uch_addr, uint8_t *puch_data)
-{
-
-	IIC_Read_One_Byte(I2C_WRITE_ADDR,uch_addr,puch_data);
-}
-
-void maxim_max30102_read_fifo(uint32_t *pun_red_led, uint32_t *pun_ir_led)
-{
-	uint32_t un_temp;
-	unsigned char uch_temp;
-	char ach_i2c_data[6];
-	*pun_red_led=0;
-	*pun_ir_led=0;
-
-  
-  //read and clear status register
-  maxim_max30102_read_reg(REG_INTR_STATUS_1, &uch_temp);
-  maxim_max30102_read_reg(REG_INTR_STATUS_2, &uch_temp);
-  
-  IIC_ReadBytes(I2C_WRITE_ADDR,REG_FIFO_DATA,(u8 *)ach_i2c_data,6);
-  
-  un_temp=(unsigned char) ach_i2c_data[0];
-  un_temp<<=16;
-  *pun_red_led+=un_temp;
-  un_temp=(unsigned char) ach_i2c_data[1];
-  un_temp<<=8;
-  *pun_red_led+=un_temp;
-  un_temp=(unsigned char) ach_i2c_data[2];
-  *pun_red_led+=un_temp;
-  
-  un_temp=(unsigned char) ach_i2c_data[3];
-  un_temp<<=16;
-  *pun_ir_led+=un_temp;
-  un_temp=(unsigned char) ach_i2c_data[4];
-  un_temp<<=8;
-  *pun_ir_led+=un_temp;
-  un_temp=(unsigned char) ach_i2c_data[5];
-  *pun_ir_led+=un_temp;
-  *pun_red_led&=0x03FFFF;  //Mask MSB [23:18]
-  *pun_ir_led&=0x03FFFF;  //Mask MSB [23:18]
-}
+#include "MAX30102.h"
+#include "soft_iic.h"
+#include "Task_Dispatch.h"
+#include "init.h"
 
 extern data_buff_t all_data;
-uint32_t aun_ir_buffer[500]; //IR LED sensor data
-int32_t n_ir_buffer_length;    //data length
-uint32_t aun_red_buffer[500];    //Red LED sensor data
-int32_t n_sp02; //SPO2 value
-int8_t ch_spo2_valid;   //indicator to show if the SP02 calculation is valid
-int32_t n_heart_rate;   //heart rate value
-int8_t  ch_hr_valid;    //indicator to show if the heart rate calculation is valid
+uint32_t IR_Buffer[500];
+uint32_t RED_Buffer[500];
+int32_t IR_Buffrt_Length;
+Task_t m_max30102_task;
 
-#define MAX_BRIGHTNESS 255
-
-
-void max30102_cal(void)
+void Max30102_Reset(void)
 {
-	uint32_t un_min, un_max, un_prev_data;
-	static uint8_t j = 0;
-	int i;
-	int32_t n_brightness;
-	float f_temp;
-	u8 temp[6];
-	un_min=0x3FFFF;
-	un_max=0;
-	n_ir_buffer_length=500;
-	while(j){
-		for(i=0;i<n_ir_buffer_length;i++)
-		{
-			while(MAX30102_INT==1);   //wait until the interrupt pin asserts
-			
-			max30102_FIFO_ReadBytes(REG_FIFO_DATA,temp);
-			aun_red_buffer[i] =  (long)((long)((long)temp[0]&0x03)<<16) | (long)temp[1]<<8 | (long)temp[2];    // Combine values to get the actual number
-			aun_ir_buffer[i] = (long)((long)((long)temp[3] & 0x03)<<16) |(long)temp[4]<<8 | (long)temp[5];   // Combine values to get the actual number
-				
-			if(un_min>aun_red_buffer[i])
-				un_min=aun_red_buffer[i];    //update signal min
-			if(un_max<aun_red_buffer[i])
-				un_max=aun_red_buffer[i];    //update signal max
-		}
-		un_prev_data=aun_red_buffer[i];
-		
-		maxim_heart_rate_and_oxygen_saturation(aun_ir_buffer, n_ir_buffer_length, aun_red_buffer, &all_data.SPO2, &ch_spo2_valid, &all_data.HR, &ch_hr_valid); 
-		j--;
-	}
-	i=0;
-	un_min=0x3FFFF;
-	un_max=0;
-	
-	//dumping the first 100 sets of samples in the memory and shift the last 400 sets of samples to the top
-	for(i=100;i<500;i++)
-	{
-		aun_red_buffer[i-100]=aun_red_buffer[i];
-		aun_ir_buffer[i-100]=aun_ir_buffer[i];
-		
-		//update the signal min and max
-		if(un_min>aun_red_buffer[i])
-		un_min=aun_red_buffer[i];
-		if(un_max<aun_red_buffer[i])
-		un_max=aun_red_buffer[i];
-	}
-	//take 100 sets of samples before calculating the heart rate.
-	for(i=400;i<500;i++)
-	{
-		un_prev_data=aun_red_buffer[i-1];
-		while(MAX30102_INT==1);
-		max30102_FIFO_ReadBytes(REG_FIFO_DATA,temp);
-		aun_red_buffer[i] =  (long)((long)((long)temp[0]&0x03)<<16) | (long)temp[1]<<8 | (long)temp[2];    // Combine values to get the actual number
-		aun_ir_buffer[i] = (long)((long)((long)temp[3] & 0x03)<<16) |(long)temp[4]<<8 | (long)temp[5];   // Combine values to get the actual number
-	
-		if(aun_red_buffer[i]>un_prev_data)
-		{
-			f_temp=aun_red_buffer[i]-un_prev_data;
-			f_temp/=(un_max-un_min);
-			f_temp*=MAX_BRIGHTNESS;
-			n_brightness-=(int)f_temp;
-			if(n_brightness<0)
-				n_brightness=0;
-		}
-		else
-		{
-			f_temp=un_prev_data-aun_red_buffer[i];
-			f_temp/=(un_max-un_min);
-			f_temp*=MAX_BRIGHTNESS;
-			n_brightness+=(int)f_temp;
-			if(n_brightness>MAX_BRIGHTNESS)
-				n_brightness=MAX_BRIGHTNESS;
-		}
-		if(!(ch_hr_valid == 1 && all_data.HR<150))
-		{
-			all_data.HR = 0;
-			all_data.SPO2 = 0;
-		}
-	}
-	maxim_heart_rate_and_oxygen_saturation(aun_ir_buffer, n_ir_buffer_length, aun_red_buffer, &all_data.SPO2, &ch_spo2_valid, &all_data.HR, &ch_hr_valid);
-	
-	printf("HR=%i, ", all_data.HR); 
-	//printf("HRvalid=%i, ", ch_hr_valid);
-	printf("SpO2=%i, ", all_data.SPO2);
-	//printf("SPO2Valid=%i\r\n", ch_spo2_valid);
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x40,1);         //RESET Bit To 1
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x40,1);         //RESET Bit To 1
+}
+
+void Max30102_Init(void)
+{
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_InitStruct.GPIO_Pin = MAX30102_IT_Pin;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(MAX30102_IT_Port,&GPIO_InitStruct);
+    GPIO_SetBits(MAX30102_IT_Port,MAX30102_IT_Pin);
+#if 0
+    NVIC_InitTypeDef NVIC_Struct;
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+    NVIC_Struct.NVIC_IRQChannel = EXTI9_5_IRQn;
+    NVIC_Struct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_Struct.NVIC_IRQChannelSubPriority = 0;
+    NVIC_Init(&NVIC_Struct);
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO,ENABLE);
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB,MAX30102_IT_Pin);
+
+    EXTI_InitTypeDef EXTI_InitStruct;
+    EXTI_InitStruct.EXTI_Line = EXTI_Line5;
+    EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+    EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
+    EXTI_Init(&EXTI_InitStruct);
+#endif
+    I2C_Config();
+    Max30102_Reset();
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_1_rigister,0xC0,1);  //Enable A_FULL and PPG_RDY
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,interrupt_enable_2_rigister,0x00,1);  //Enable A_FULL and PPG_RDY
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_wr_ptr_rigister,0x00,1);         //Write_prt reset
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,over_flow_cnt_rigister,0x00,1);       //over_flow_ptr reset
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_rd_ptr_rigister,0x00,1);         //read_ptr reset
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,fifo_config_rigister,0x0f,1);         //No average,No Rolls,Almost Full = 17 
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,mode_config_rigister,0x03,1);         //Heart Rate and SPO2 Mode
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,spO2_config_rigister,0x27,1);         //SpO2 ADC Range=4096nA,SPO2 Rate=100Hz,Pulse Width=400ns
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,led1_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED1
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,led2_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED2
+    I2C_write_OneByte(MAX30102_I2C,write_slave_addr,proximity_mode_led_pulse_amplitude_rigister,0x7f,1);//almost 7mA for LED2
+}
+
+void Max30102_Read_FIFO(uint32_t *RED,uint32_t *IR)
+{
+    uint8_t IT_Status;
+    uint32_t red_temp,ir_temp;
+    uint8_t data_array[6];
+    I2C_read_Bytes(MAX30102_I2C,read_slave_addr,interrupt_status_1_rigister,&IT_Status,1); //clead IT IT_Status
+    I2C_read_Bytes(MAX30102_I2C,read_slave_addr,interrupt_status_2_rigister,&IT_Status,1); //clead IT IT_Status
+    I2C_read_Bytes(MAX30102_I2C,read_slave_addr,fifo_data_rigister,data_array,6);
+
+    red_temp = (data_array[0] << 16) + (data_array[1] << 8) + data_array[2];
+    ir_temp  = (data_array[3] << 16) + (data_array[4] << 8) + data_array[5];
+
+    *RED = red_temp & 0x03ffff; //18bit
+    *IR  = ir_temp  & 0x03ffff; //18bit
+}
+
+void Max30102_Get_First_Sample(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *HR_Value)
+{
+    uint16_t i;
+    uint32_t min1_data=0x3ffff;
+    uint32_t max1_data=0;
+    int8_t SPO2_Valid;
+    int8_t HR_Valid;
+    for(i=0;i<500;i++){
+        while(MAX30102_IT_STATUS() == 1); //until Intertupt assert
+
+        Max30102_Read_FIFO(RED,IR); //read FIFO data
+        IR_Buffer[i]  = *IR;
+        RED_Buffer[i] = *RED;
+
+        if(min1_data>RED_Buffer[i])          //updata min and max data
+            min1_data = RED_Buffer[i];
+        if(max1_data < RED_Buffer[i])
+            max1_data = RED_Buffer[i];
+    }
+    maxim_heart_rate_and_oxygen_saturation(IR_Buffer,IR_Buffrt_Length,RED_Buffer,SPO2_Value,&SPO2_Valid,HR_Value,&HR_Valid);
+}
+
+void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *HR_Value)
+{
+    int i;
+    float f_temp;
+    int8_t SPO2_Valid;
+    int8_t HR_Valid;
+    int32_t brightness;
+    uint32_t pre_data;
+    uint32_t min1_data=0x3ffff;
+    uint32_t max1_data=0;
+    uint16_t IR_Buffrt_Length = 500;
+
+    for(i=100;i<IR_Buffrt_Length;i++){
+        RED_Buffer[i-100] = RED_Buffer[i];
+        IR_Buffer[i-100] = IR_Buffer[i];
+        //update the signal min and max
+        if(min1_data > RED_Buffer[i])
+            min1_data = RED_Buffer[i];
+        if(max1_data < RED_Buffer[i])
+            max1_data = RED_Buffer[i];
+    }
+    //take 100 sets of samples before calculating the heart rate.
+    for(i=400;i<IR_Buffrt_Length;i++){
+        pre_data = RED_Buffer[i-1];
+        while(MAX30102_IT_STATUS() == 1); //until Intertupt assert
+        Max30102_Read_FIFO(RED,IR); //read FIFO data
+        IR_Buffer[i]  = *IR;
+        RED_Buffer[i] = *RED;
+
+        if(RED_Buffer[i] > pre_data){
+            f_temp = RED_Buffer[i] - pre_data;
+            f_temp /= (max1_data-min1_data);
+            f_temp *= MAX_BRIGHTNESS;
+            brightness -= (int)f_temp;
+            if(brightness<0)
+                brightness = 0;
+        }else{
+            f_temp = pre_data-RED_Buffer[i];
+            f_temp /= (max1_data-min1_data);
+            f_temp *= MAX_BRIGHTNESS;
+            brightness += (int)f_temp;
+            if(brightness>MAX_BRIGHTNESS)
+                brightness = MAX_BRIGHTNESS;
+        }
+    }
+    //calculate heart rate and SpO2 after first 500 samples (first 5 seconds of samples)
+    maxim_heart_rate_and_oxygen_saturation(IR_Buffer,IR_Buffrt_Length,RED_Buffer,SPO2_Value,&SPO2_Valid,HR_Value,&HR_Valid);
+    if(!((((HR_Valid==1) && (((*HR_Value)<150))) && ((*HR_Value)>50)))){
+        *HR_Value = 0;
+    }
+    if(!((SPO2_Valid==1 && (((*SPO2_Value)<100) &&((*SPO2_Value)>80))))){
+        *SPO2_Value = 0;
+    }
 }
 
 
 void max30102_task(void)
 {
-	max30102_cal();
+    static uint8_t i = 1;
+    while(i){
+        Max30102_Get_First_Sample(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
+        i--;
+    }
+    Max30102_Calculate(&all_data.RED,&all_data.IR,&all_data.SPO2,&all_data.HR);
+    DMA_Printf("SPO2_Value:%d HR_Value:%d \r\n",all_data.SPO2,all_data.HR);
 }
 

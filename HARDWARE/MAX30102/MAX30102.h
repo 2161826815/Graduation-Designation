@@ -1,54 +1,47 @@
-#ifndef __MAX_H
-#define __MAX_H
-#include "sys.h" 
-#include "init.h"
+#ifndef __MAX30102_H
+
+#define __MAX30102_H
+
+#include "stm32f10x.h"
+#include "i2c.h"
 #include "algorithm.h"
-#define MAX30102_INT PBin(5)
+#include "USART.h"
+#define MAX_BRIGHTNESS 255
 
-#define I2C_WR	0
-#define I2C_RD	1
+#define MAX30102_IT_Port                            GPIOB
+#define MAX30102_IT_Pin                             GPIO_Pin_5
+#define MAX30102_IT_STATUS()                        GPIO_ReadInputDataBit(MAX30102_IT_Port,MAX30102_IT_Pin)
 
-#define max30102_WR_address 0xAE
+#define write_slave_addr                            0xAE
+#define read_slave_addr                             0xAF
 
-#define I2C_WRITE_ADDR 0xAE
-#define I2C_READ_ADDR 0xAF
+#define interrupt_status_1_rigister                 0x00
+#define interrupt_status_2_rigister                 0x01
+#define interrupt_enable_1_rigister                 0x02
+#define interrupt_enable_2_rigister                 0x03
+#define fifo_wr_ptr_rigister                        0x04
+#define over_flow_cnt_rigister                      0x05
+#define fifo_rd_ptr_rigister                        0x06
+#define fifo_data_rigister                          0x07
+#define fifo_config_rigister                        0x08
+#define mode_config_rigister                        0x09
+#define spO2_config_rigister                        0x0A
+ 
 
-//register addresses
-#define REG_INTR_STATUS_1 0x00
-#define REG_INTR_STATUS_2 0x01
-#define REG_INTR_ENABLE_1 0x02
-#define REG_INTR_ENABLE_2 0x03
-#define REG_FIFO_WR_PTR 0x04
-#define REG_OVF_COUNTER 0x05
-#define REG_FIFO_RD_PTR 0x06
-#define REG_FIFO_DATA 0x07
-#define REG_FIFO_CONFIG 0x08
-#define REG_MODE_CONFIG 0x09
-#define REG_SPO2_CONFIG 0x0A
-#define REG_LED1_PA 0x0C
-#define REG_LED2_PA 0x0D
-#define REG_PILOT_PA 0x10
-#define REG_MULTI_LED_CTRL1 0x11
-#define REG_MULTI_LED_CTRL2 0x12
-#define REG_TEMP_INTR 0x1F
-#define REG_TEMP_FRAC 0x20
-#define REG_TEMP_CONFIG 0x21
-#define REG_PROX_INT_THRESH 0x30
-#define REG_REV_ID 0xFE
-#define REG_PART_ID 0xFF
+#define led1_pulse_amplitude_rigister               0x0C
+#define led2_pulse_amplitude_rigister               0x0D
+#define proximity_mode_led_pulse_amplitude_rigister 0x10
+//#define Multi_LED_Mode_Control_Registers_slot1_2    0x11
+//#define Multi_LED_Mode_Control_Registers_slot1_2    0x12
+//#define Die_Temp_Integer                            0x1F
+//#define Die_Temp_Fraction                           0x20
+//#define Die_Temp_config                             0x20
+//#define Proximity_Interrupt_Threshold               0x30
 
-void max30102_init(void);  
-void max30102_reset(void);
-u8 max30102_Bus_Write(u8 Register_Address, u8 Word_Data);
-u8 max30102_Bus_Read(u8 Register_Address);
-void max30102_FIFO_ReadWords(u8 Register_Address,u16  Word_Data[][2],u8 count);
-void max30102_FIFO_ReadBytes(u8 Register_Address,u8* Data);
-
-void maxim_max30102_write_reg(uint8_t uch_addr, uint8_t uch_data);
-void maxim_max30102_read_reg(uint8_t uch_addr, uint8_t *puch_data);
-void maxim_max30102_read_fifo(uint32_t *pun_red_led, uint32_t *pun_ir_led);
-
-void max30102_cal(void);
+void Max30102_Reset(void);
+void Max30102_Init(void);
+void Max30102_Read_FIFO(uint32_t *RED,uint32_t *IR);
+void Max30102_Calculate(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *HR_Value);
+void Max30102_Get_First_Sample(uint32_t *RED,uint32_t *IR,int32_t *SPO2_Value,int32_t *HR_Value);
 void max30102_task(void);
 #endif
-
