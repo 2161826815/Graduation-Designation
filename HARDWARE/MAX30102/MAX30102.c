@@ -312,63 +312,60 @@ void max30102_cal(void)
 		j--;
 	}
 	i=0;
-        un_min=0x3FFFF;
-        un_max=0;
+	un_min=0x3FFFF;
+	un_max=0;
+	
+	//dumping the first 100 sets of samples in the memory and shift the last 400 sets of samples to the top
+	for(i=100;i<500;i++)
+	{
+		aun_red_buffer[i-100]=aun_red_buffer[i];
+		aun_ir_buffer[i-100]=aun_ir_buffer[i];
 		
-		//dumping the first 100 sets of samples in the memory and shift the last 400 sets of samples to the top
-        for(i=100;i<500;i++)
-        {
-            aun_red_buffer[i-100]=aun_red_buffer[i];
-            aun_ir_buffer[i-100]=aun_ir_buffer[i];
-            
-            //update the signal min and max
-            if(un_min>aun_red_buffer[i])
-            un_min=aun_red_buffer[i];
-            if(un_max<aun_red_buffer[i])
-            un_max=aun_red_buffer[i];
-        }
-		//take 100 sets of samples before calculating the heart rate.
-        for(i=400;i<500;i++)
-        {
-            un_prev_data=aun_red_buffer[i-1];
-            while(MAX30102_INT==1);
-            max30102_FIFO_ReadBytes(REG_FIFO_DATA,temp);
-			aun_red_buffer[i] =  (long)((long)((long)temp[0]&0x03)<<16) | (long)temp[1]<<8 | (long)temp[2];    // Combine values to get the actual number
-			aun_ir_buffer[i] = (long)((long)((long)temp[3] & 0x03)<<16) |(long)temp[4]<<8 | (long)temp[5];   // Combine values to get the actual number
-        
-            if(aun_red_buffer[i]>un_prev_data)
-            {
-                f_temp=aun_red_buffer[i]-un_prev_data;
-                f_temp/=(un_max-un_min);
-                f_temp*=MAX_BRIGHTNESS;
-                n_brightness-=(int)f_temp;
-                if(n_brightness<0)
-                    n_brightness=0;
-            }
-            else
-            {
-                f_temp=un_prev_data-aun_red_buffer[i];
-                f_temp/=(un_max-un_min);
-                f_temp*=MAX_BRIGHTNESS;
-                n_brightness+=(int)f_temp;
-                if(n_brightness>MAX_BRIGHTNESS)
-                    n_brightness=MAX_BRIGHTNESS;
-            }
-			//send samples and calculation result to terminal program through UART
-			/* if(!(ch_hr_valid == 1 && all_data.HR<120))
-			{
-				all_data.HR = 0;
-			}
-			if(!(ch_spo2_valid == 1 && all_data.SPO2<100 && all_data.SPO2>50))
-			{
-				all_data.SPO2 = 0;
-			} */
-			printf("HR=%i, ", all_data.HR); 
-			printf("HRvalid=%i, ", ch_hr_valid);
-			printf("SpO2=%i, ", all_data.SPO2);
-			printf("SPO2Valid=%i\r\n", ch_spo2_valid);
+		//update the signal min and max
+		if(un_min>aun_red_buffer[i])
+		un_min=aun_red_buffer[i];
+		if(un_max<aun_red_buffer[i])
+		un_max=aun_red_buffer[i];
+	}
+	//take 100 sets of samples before calculating the heart rate.
+	for(i=400;i<500;i++)
+	{
+		un_prev_data=aun_red_buffer[i-1];
+		while(MAX30102_INT==1);
+		max30102_FIFO_ReadBytes(REG_FIFO_DATA,temp);
+		aun_red_buffer[i] =  (long)((long)((long)temp[0]&0x03)<<16) | (long)temp[1]<<8 | (long)temp[2];    // Combine values to get the actual number
+		aun_ir_buffer[i] = (long)((long)((long)temp[3] & 0x03)<<16) |(long)temp[4]<<8 | (long)temp[5];   // Combine values to get the actual number
+	
+		if(aun_red_buffer[i]>un_prev_data)
+		{
+			f_temp=aun_red_buffer[i]-un_prev_data;
+			f_temp/=(un_max-un_min);
+			f_temp*=MAX_BRIGHTNESS;
+			n_brightness-=(int)f_temp;
+			if(n_brightness<0)
+				n_brightness=0;
 		}
-        maxim_heart_rate_and_oxygen_saturation(aun_ir_buffer, n_ir_buffer_length, aun_red_buffer, &all_data.SPO2, &ch_spo2_valid, &all_data.HR, &ch_hr_valid);
+		else
+		{
+			f_temp=un_prev_data-aun_red_buffer[i];
+			f_temp/=(un_max-un_min);
+			f_temp*=MAX_BRIGHTNESS;
+			n_brightness+=(int)f_temp;
+			if(n_brightness>MAX_BRIGHTNESS)
+				n_brightness=MAX_BRIGHTNESS;
+		}
+		if(!(ch_hr_valid == 1 && all_data.HR<150))
+		{
+			all_data.HR = 0;
+			all_data.SPO2 = 0;
+		}
+	}
+	maxim_heart_rate_and_oxygen_saturation(aun_ir_buffer, n_ir_buffer_length, aun_red_buffer, &all_data.SPO2, &ch_spo2_valid, &all_data.HR, &ch_hr_valid);
+	
+	printf("HR=%i, ", all_data.HR); 
+	//printf("HRvalid=%i, ", ch_hr_valid);
+	printf("SpO2=%i, ", all_data.SPO2);
+	//printf("SPO2Valid=%i\r\n", ch_spo2_valid);
 }
 
 
